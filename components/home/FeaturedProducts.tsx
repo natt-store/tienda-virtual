@@ -171,7 +171,7 @@ export default function FeaturedProducts() {
         ))}
       </div>
 
-      {/* Nota visual */}
+      {/* Nota temporal */}
       <div className="mt-8 rounded-[24px] border border-dashed border-[var(--natt-brown)]/15 bg-[var(--natt-peach)]/25 px-6 py-5 text-center">
         <p className="text-xs text-[var(--natt-brown)]/60">
           Las fotografías mostradas son referencias temporales. Aquí irán las

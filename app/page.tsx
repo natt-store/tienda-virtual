@@ -4,6 +4,7 @@ import Hero from "@/components/home/Hero";
 import Benefits from "@/components/home/Benefits";
 import Categories from "@/components/home/Categories";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
+import RecommendedProducts from "@/components/home/RecommendedProducts";
 
 export default function Home() {
   return (
@@ -28,6 +29,9 @@ export default function Home() {
 
       {/* Productos destacados */}
       <FeaturedProducts />
+
+      {/* Productos recomendados */}
+      <RecommendedProducts />
 
       {/* Footer */}
       <Footer />
