@@ -2,141 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { useCart } from "@/components/cart/CartContext";
+import { useFavorites } from "@/components/favorites/FavoritesContext";
+import { useProduct, type Product } from "@/lib/useProducts";
+import { supabase } from "@/lib/supabase";
 
-const products = [
-  {
-    id: 1,
-    name: "Set de brochas esenciales",
-    category: "Brochas",
-    price: 45900,
-    image:
-      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Set de brochas pensado para crear looks completos de manera práctica y sencilla.",
-    badge: "Más vendido",
-  },
-  {
-    id: 2,
-    name: "Paleta de sombras Rosé",
-    category: "Ojos",
-    price: 58900,
-    image:
-      "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Paleta de sombras con tonos suaves y versátiles para looks de todos los días.",
-    badge: "Favorito",
-  },
-  {
-    id: 3,
-    name: "Labial rosa natural",
-    category: "Labios",
-    price: 32900,
-    image:
-      "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Un tono rosa delicado para complementar tus looks con un acabado elegante.",
-    badge: "Nuevo",
-  },
-  {
-    id: 4,
-    name: "Rubor Soft Pink",
-    category: "Rostro",
-    price: 37900,
-    image:
-      "https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Rubor en tono rosado para aportar un acabado fresco y natural al rostro.",
-    badge: "Nuevo",
-  },
-  {
-    id: 5,
-    name: "Gloss brillo natural",
-    category: "Labios",
-    price: 28900,
-    image:
-      "https://images.unsplash.com/photo-1631214524020-7e18db9a8f92?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Gloss ligero con acabado brillante para darle un toque especial a tus labios.",
-    badge: "Favorito",
-  },
-  {
-    id: 6,
-    name: "Máscara de pestañas",
-    category: "Ojos",
-    price: 41900,
-    image:
-      "https://images.unsplash.com/photo-1631730486572-226d1e3a9c8a?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Máscara para destacar la mirada y complementar tus looks de maquillaje.",
-    badge: "Más vendido",
-  },
-  {
-    id: 7,
-    name: "Base de maquillaje",
-    category: "Rostro",
-    price: 69900,
-    image:
-      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Base de maquillaje para lograr una apariencia uniforme y natural.",
-    badge: "Nuevo",
-  },
-  {
-    id: 8,
-    name: "Delineador líquido",
-    category: "Ojos",
-    price: 26900,
-    image:
-      "https://images.unsplash.com/photo-1590156221820-7f7a2c5f7a39?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Delineador práctico para crear líneas definidas y looks de ojos diferentes.",
-    badge: "Favorito",
-  },
-  {
-    id: 9,
-    name: "Iluminador Glow",
-    category: "Rostro",
-    price: 44900,
-    image:
-      "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=1200&q=85",
-    description:
-      "Iluminador para aportar luminosidad y un acabado radiante al rostro.",
-    badge: "Nuevo",
-  },
-];
-
-const reviews = [
-  {
-    id: 1,
-    name: "Valentina",
-    rating: 5,
-    date: "Hace 3 días",
-    comment:
-      "Me encantó. Las brochas son muy suaves y se sienten de muy buena calidad.",
-    photo:
-      "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 2,
-    name: "Mariana",
-    rating: 5,
-    date: "Hace 1 semana",
-    comment:
-      "El set llegó muy bonito y bien presentado. Definitivamente lo volvería a comprar.",
-    photo: null,
-  },
-  {
-    id: 3,
-    name: "Laura",
-    rating: 4,
-    date: "Hace 2 semanas",
-    comment:
-      "Muy lindas y prácticas. Me gustó mucho la presentación del producto.",
-    photo: null,
-  },
-];
+type Review = {
+  id: number;
+  nombre: string;
+  calificacion: number;
+  comentario: string;
+  foto: string | null;
+  created_at: string;
+};
 
 function HeartIcon({ filled }: { filled: boolean }) {
   return (
@@ -144,7 +25,7 @@ function HeartIcon({ filled }: { filled: boolean }) {
       viewBox="0 0 24 24"
       fill={filled ? "currentColor" : "none"}
       xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
+      className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
       aria-hidden="true"
     >
       <path
@@ -164,7 +45,7 @@ function ArrowIcon() {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="h-4 w-4"
+      className="h-3.5 w-3.5"
       aria-hidden="true"
     >
       <path
@@ -190,7 +71,7 @@ function StarIcon({ filled = false }: { filled?: boolean }) {
       viewBox="0 0 24 24"
       fill={filled ? "currentColor" : "none"}
       xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
+      className="h-4 w-4"
       aria-hidden="true"
     >
       <path
@@ -211,18 +92,87 @@ export default function ProductDetail({
 }) {
   const [productId, setProductId] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [favorite, setFavorite] = useState(false);
-  const [selectedRating, setSelectedRating] = useState(0);
+  
+  // Estados para reseñas reales
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewerName, setReviewerName] = useState("");
+  const [selectedRating, setSelectedRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
-  const [reviewPhoto, setReviewPhoto] = useState<string | null>(null);
+  const [reviewPhotoFile, setReviewPhotoFile] = useState<File | null>(null);
+  const [reviewPhotoPreview, setReviewPhotoPreview] = useState<string | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
 
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+
+  const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  const { product, loading: loadingProduct } = useProduct(productId);
+
+  // Leer el ID de los params
   useEffect(() => {
     params.then(({ id }) => {
       setProductId(Number(id));
     });
   }, [params]);
 
-  const product = products.find((item) => item.id === productId);
+  // Cargar reseñas reales de este producto desde Supabase
+  useEffect(() => {
+    if (!productId) return;
+
+    async function fetchReviews() {
+      const { data, error } = await supabase
+        .from("reseñas")
+        .select("*")
+        .eq("producto_id", productId)
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        setReviews(data);
+      }
+    }
+
+    fetchReviews();
+  }, [productId]);
+
+  // Cargar productos relacionados
+  useEffect(() => {
+    if (!product) return;
+
+    let mounted = true;
+
+    async function fetchRelated() {
+      const { data, error } = await supabase
+        .from("productos")
+        .select("*")
+        .eq("active", true)
+        .eq("section", product!.section)
+        .eq("category", product!.category)
+        .neq("id", product!.id)
+        .limit(3);
+
+      if (!mounted) return;
+
+      if (!error && data) {
+        setRelatedProducts(
+          data.map((p) => ({
+            ...p,
+            href: `/tienda/producto/${p.id}`,
+          }))
+        );
+      } else {
+        setRelatedProducts([]);
+      }
+    }
+
+    fetchRelated();
+
+    return () => {
+      mounted = false;
+    };
+  }, [product]);
+
+  const favorite = product ? isFavorite(product.id) : false;
 
   const formattedPrice = product
     ? new Intl.NumberFormat("es-CO", {
@@ -232,287 +182,333 @@ export default function ProductDetail({
       }).format(product.price)
     : "";
 
-  const relatedProducts = product
-    ? products
-        .filter(
-          (item) => item.category === product.category && item.id !== product.id
-        )
-        .slice(0, 3)
-    : [];
+  // Calcular promedio de estrellas real
+  const averageRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((acc, r) => acc + r.calificacion, 0) / reviews.length
+        ).toFixed(1)
+      : "5.0";
 
-  const averageRating = 4.7;
-
-  const handlePhotoChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
-    const imageUrl = URL.createObjectURL(file);
-    setReviewPhoto(imageUrl);
+    setReviewPhotoFile(file);
+    setReviewPhotoPreview(URL.createObjectURL(file));
   };
 
-  const handleReviewSubmit = () => {
-    if (!selectedRating || !reviewText.trim()) {
-      alert("Selecciona una calificación y escribe tu comentario.");
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!reviewerName.trim() || !selectedRating || !reviewText.trim()) {
+      alert("Por favor escribe tu nombre, calificación y comentario.");
+      return;
+    }
+
+    if (!productId) return;
+
+    setSubmittingReview(true);
+    let photoUrl: string | null = null;
+
+    // Si subió foto, la guardamos en el Storage de Supabase
+    if (reviewPhotoFile) {
+      const ext = reviewPhotoFile.name.split(".").pop();
+      const fileName = `review-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("productos") // Usamos el mismo bucket de productos
+        .upload(fileName, reviewPhotoFile);
+
+      if (!uploadError) {
+        const { data: pubData } = supabase.storage
+          .from("productos")
+          .getPublicUrl(fileName);
+        photoUrl = pubData.publicUrl;
+      }
+    }
+
+    // Insertar reseña en la base de datos
+    const { data: newReview, error: insertError } = await supabase
+      .from("reseñas")
+      .insert({
+        producto_id: productId,
+        nombre: reviewerName.trim(),
+        calificacion: selectedRating,
+        comentario: reviewText.trim(),
+        foto: photoUrl,
+      })
+      .select()
+      .single();
+
+    setSubmittingReview(false);
+
+    if (insertError) {
+      alert("Error al publicar la reseña: " + insertError.message);
       return;
     }
 
     alert("¡Gracias por compartir tu opinión!");
-
-    setSelectedRating(0);
+    setReviews([newReview, ...reviews]);
+    setReviewerName("");
     setReviewText("");
-    setReviewPhoto(null);
+    setSelectedRating(5);
+    setReviewPhotoFile(null);
+    setReviewPhotoPreview(null);
   };
 
-  if (!productId) {
-    return (
-      <main className="min-h-screen bg-[#F9E3E9]">
-        <Navbar />
+  const handleAddToCart = () => {
+    if (!product) return;
 
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <p className="text-sm text-[var(--natt-brown)]">
+    addToCart(
+      {
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        price: product.price,
+        image: product.image,
+      },
+      quantity
+    );
+
+    alert(
+      `${quantity} ${
+        quantity === 1 ? "producto agregado" : "productos agregados"
+      } al carrito.`
+    );
+  };
+
+  // =====================================
+  // CARGANDO
+  // =====================================
+  if (loadingProduct) {
+    return (
+      <main className="min-h-screen bg-[var(--natt-bg)]">
+        <Navbar />
+        <div className="flex min-h-[55vh] items-center justify-center">
+          <p className="text-sm text-[var(--natt-dark)]/60">
             Cargando producto...
           </p>
         </div>
-
         <Footer />
       </main>
     );
   }
 
+  // =====================================
+  // NO ENCONTRADO
+  // =====================================
   if (!product) {
     return (
-      <main className="min-h-screen bg-[#F9E3E9]">
+      <main className="min-h-screen bg-[var(--natt-bg)]">
         <Navbar />
-
-        <section className="mx-auto flex min-h-[60vh] max-w-5xl flex-col items-center justify-center px-6 text-center">
-          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--natt-pink)]">
+        <section className="mx-auto flex min-h-[55vh] max-w-5xl flex-col items-center justify-center px-6 text-center">
+          <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-[var(--natt-pink)]">
             Producto no encontrado
           </span>
-
-          <h1 className="mt-4 text-3xl font-semibold text-[var(--natt-brown)] sm:text-4xl">
+          <h1 className="mt-3 text-2xl font-semibold text-[var(--natt-dark)] sm:text-3xl">
             No encontramos este producto.
           </h1>
-
-          <p className="mt-4 max-w-md text-sm leading-6 text-[var(--natt-brown)]/65">
-            Regresa a la tienda para descubrir todos nuestros productos.
-          </p>
-
           <Link
-            href="/tienda/maquillaje"
-            className="mt-8 inline-flex items-center gap-3 rounded-full bg-[var(--natt-brown)] px-7 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[var(--natt-pink)]"
+            href="/tienda"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--natt-pink)] px-6 py-3 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[var(--natt-purple)]"
           >
-            Ver maquillaje
+            Ver tienda
             <ArrowIcon />
           </Link>
         </section>
-
         <Footer />
       </main>
     );
   }
 
+  const sectionLower = product.section.toLowerCase();
+  const sectionHref =
+    sectionLower === "maquillaje"
+      ? "/tienda/maquillaje"
+      : sectionLower === "hogar"
+        ? "/tienda/hogar"
+        : sectionLower === "papelería" || sectionLower === "papeleria"
+          ? "/tienda/papeleria-kawaii"
+          : sectionLower === "temporada"
+            ? "/tienda/temporada"
+            : "/tienda";
+
   return (
-    <main className="min-h-screen bg-[#F9E3E9] text-[var(--natt-dark)]">
+    <main className="min-h-screen bg-[var(--natt-bg)] text-[var(--natt-dark)]">
       <Navbar />
 
-      {/* Botón regresar */}
-      <section className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
-        <Link
-          href="/tienda/maquillaje"
-          className="inline-flex items-center gap-2 rounded-full bg-[var(--natt-pink)] px-5 py-3 text-xs font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--natt-brown)] hover:shadow-md"
-        >
-          ← Volver a maquillaje
-        </Link>
-      </section>
+      {/* =====================================
+          PRODUCTO PRINCIPAL
+      ====================================== */}
+      <section className="mx-auto max-w-6xl px-4 pb-7 pt-4 sm:px-6 sm:pb-10 sm:pt-6 lg:px-8">
+        <div className="mb-4 sm:mb-5">
+          <Link
+            href={sectionHref}
+            className="group inline-flex items-center gap-2 text-[11px] font-semibold text-[var(--natt-dark)]/50 transition-colors hover:text-[var(--natt-pink)]"
+          >
+            <span className="transition-transform group-hover:-translate-x-1">
+              ←
+            </span>
+            Volver a {product.section.toLowerCase()}
+          </Link>
+        </div>
 
-      {/* Producto */}
-      <section className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-10 lg:px-8">
-        <div className="grid grid-cols-2 gap-3 sm:gap-8 lg:grid-cols-2 lg:gap-14">
-          {/* Imagen */}
-          <div className="relative self-start overflow-hidden rounded-[24px] bg-[#E8B9C9] p-2.5 sm:rounded-[32px] sm:p-5">
-            <div className="relative overflow-hidden rounded-[20px] bg-white sm:rounded-[26px]">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="aspect-square w-full object-cover"
-              />
-            </div>
+        <div className="relative overflow-hidden rounded-[26px] border border-white/70 bg-white/30 p-2.5 shadow-[0_15px_45px_rgba(90,45,65,0.07)] backdrop-blur-sm sm:rounded-[32px] sm:p-4 lg:p-5">
+          <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:gap-9">
+            {/* IMAGEN DEL PRODUCTO */}
+            <div className="relative">
+              <div className="relative mx-auto max-w-[520px] overflow-hidden rounded-[22px] bg-gradient-to-br from-[#f7d9df] via-[#f1e2d8] to-[#d9eef0] p-2.5 sm:rounded-[27px] sm:p-3.5">
+                <div className="relative aspect-square w-full overflow-hidden rounded-[18px] bg-white/50 shadow-[0_14px_32px_rgba(60,30,50,0.1)] sm:rounded-[21px]">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 520px"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
 
-            {product.badge && (
-              <span className="absolute left-4 top-4 rounded-full bg-white/95 px-2.5 py-1.5 text-[7px] font-bold uppercase tracking-[0.12em] text-[var(--natt-brown)] shadow-sm sm:left-7 sm:top-7 sm:px-4 sm:py-2 sm:text-[9px] sm:tracking-[0.18em]">
-                {product.badge}
-              </span>
-            )}
-          </div>
-
-          {/* Información */}
-          <div className="flex flex-col justify-center">
-            <p className="text-[7px] font-bold uppercase tracking-[0.18em] text-[var(--natt-pink)] sm:text-[10px] sm:tracking-[0.3em]">
-              {product.category}
-            </p>
-
-            <h1 className="mt-2 text-xl font-semibold leading-tight text-[var(--natt-brown)] sm:mt-4 sm:text-5xl">
-              {product.name}
-            </h1>
-
-            <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:mt-5 sm:gap-3">
-              <div className="flex gap-0.5 text-[var(--natt-pink)] sm:gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <span key={star} className="scale-[0.65] sm:scale-100">
-                    <StarIcon filled />
+                {product.badge && (
+                  <span className="absolute left-5 top-5 rounded-full border border-white/70 bg-white/90 px-2.5 py-1 text-[7px] font-bold uppercase tracking-[0.14em] text-[var(--natt-dark)] shadow-sm backdrop-blur-sm sm:left-7 sm:top-7 sm:px-3 sm:py-1.5 sm:text-[8px]">
+                    {product.badge}
                   </span>
-                ))}
+                )}
               </div>
-
-              <span className="text-[10px] font-semibold text-[var(--natt-brown)] sm:text-sm">
-                {averageRating}
-              </span>
-
-              <span className="text-[9px] text-[var(--natt-brown)]/50 sm:text-xs">
-                ({reviews.length})
-              </span>
             </div>
 
-            <p className="mt-3 text-lg font-bold text-[var(--natt-brown)] sm:mt-6 sm:text-2xl">
-              {formattedPrice}
-            </p>
+            {/* INFORMACIÓN */}
+            <div className="relative px-1 py-1 sm:px-2 lg:py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--natt-pink)] sm:text-[9px]">
+                    {product.section}
+                  </p>
+                  <p className="mt-1 text-[9px] font-medium uppercase tracking-[0.13em] text-[var(--natt-dark)]/40 sm:text-[10px]">
+                    {product.category}
+                  </p>
+                </div>
 
-            <div className="mt-3 h-px bg-[var(--natt-brown)]/10 sm:mt-7" />
-
-            <p className="mt-3 text-[10px] leading-5 text-[var(--natt-brown)]/70 sm:mt-7 sm:text-sm sm:leading-7">
-              {product.description}
-            </p>
-
-            {/* Cantidad */}
-            <div className="mt-4 sm:mt-8">
-              <p className="mb-2 text-[9px] font-bold text-[var(--natt-brown)] sm:mb-3 sm:text-xs">
-                Cantidad
-              </p>
-
-              <div className="flex w-fit items-center overflow-hidden rounded-full border border-[var(--natt-brown)]/15 bg-white">
                 <button
                   type="button"
-                  onClick={() =>
-                    setQuantity((current) => Math.max(1, current - 1))
-                  }
-                  className="flex h-8 w-8 items-center justify-center text-sm text-[var(--natt-brown)] transition-colors hover:bg-[var(--natt-pink-light)] sm:h-11 sm:w-11 sm:text-lg"
-                  aria-label="Disminuir cantidad"
+                  onClick={() => toggleFavorite(product)}
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border backdrop-blur-sm transition-all duration-300 hover:scale-105 sm:h-10 sm:w-10 ${
+                    favorite
+                      ? "border-[var(--natt-pink)] bg-[var(--natt-pink)]/10 text-[var(--natt-pink)]"
+                      : "border-[var(--natt-dark)]/10 bg-white/60 text-[var(--natt-dark)]/55 hover:border-[var(--natt-pink)] hover:text-[var(--natt-pink)]"
+                  }`}
                 >
-                  −
+                  <HeartIcon filled={favorite} />
                 </button>
+              </div>
 
-                <span className="flex h-8 min-w-9 items-center justify-center text-[10px] font-semibold text-[var(--natt-brown)] sm:h-11 sm:min-w-12 sm:text-sm">
-                  {quantity}
+              <h1 className="mt-3 max-w-md text-[clamp(1.65rem,3.2vw,2.8rem)] font-semibold leading-[1] tracking-[-0.03em] text-[var(--natt-dark)] sm:mt-4">
+                {product.name}
+              </h1>
+
+              {/* Rating */}
+              <div className="mt-3 flex items-center gap-2 sm:mt-4">
+                <div className="flex gap-0.5 text-[var(--natt-pink)]">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star}>
+                      <StarIcon filled />
+                    </span>
+                  ))}
+                </div>
+                <span className="text-[11px] font-semibold text-[var(--natt-dark)]">
+                  {averageRating}
                 </span>
+                <span className="text-[10px] text-[var(--natt-dark)]/40">
+                  · {reviews.length} {reviews.length === 1 ? "reseña" : "reseñas"}
+                </span>
+              </div>
 
-                <button
-                  type="button"
-                  onClick={() => setQuantity((current) => current + 1)}
-                  className="flex h-8 w-8 items-center justify-center text-sm text-[var(--natt-brown)] transition-colors hover:bg-[var(--natt-pink-light)] sm:h-11 sm:w-11 sm:text-lg"
-                  aria-label="Aumentar cantidad"
-                >
-                  +
-                </button>
+              {/* Precio */}
+              <div className="mt-4 flex items-end gap-2 sm:mt-5">
+                <span className="text-xl font-bold tracking-tight text-[var(--natt-dark)] sm:text-2xl">
+                  {formattedPrice}
+                </span>
+                <span className="mb-0.5 text-[8px] uppercase tracking-[0.1em] text-[var(--natt-dark)]/35 sm:text-[9px]">
+                  Precio final
+                </span>
+              </div>
+
+              <div className="mt-4 h-px w-full bg-gradient-to-r from-[var(--natt-pink)]/30 via-[var(--natt-dark)]/8 to-transparent" />
+
+              {product.description && (
+                <p className="mt-4 max-w-md text-[12px] leading-5 text-[var(--natt-dark)]/60 sm:text-[13px] sm:leading-6">
+                  {product.description}
+                </p>
+              )}
+
+              {/* Cantidad y Carrito */}
+              <div className="mt-5">
+                <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--natt-dark)]/45">
+                  Cantidad
+                </p>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="flex h-10 items-center overflow-hidden rounded-full border border-[var(--natt-dark)]/10 bg-white/70 backdrop-blur-sm">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((c) => Math.max(1, c - 1))}
+                      className="flex h-10 w-9 items-center justify-center text-base text-[var(--natt-dark)]/55 hover:bg-[var(--natt-pink)]/10 hover:text-[var(--natt-pink)]"
+                    >
+                      −
+                    </button>
+                    <span className="flex min-w-8 items-center justify-center text-xs font-bold text-[var(--natt-dark)]">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity((c) => c + 1)}
+                      className="flex h-10 w-9 items-center justify-center text-base text-[var(--natt-dark)]/55 hover:bg-[var(--natt-aqua)]/10 hover:text-[var(--natt-aqua)]"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    className="group relative flex h-10 flex-1 items-center justify-center gap-2 overflow-hidden rounded-full bg-[var(--natt-dark)] px-5 text-[10px] font-bold text-white transition-all hover:bg-[var(--natt-pink)] sm:text-xs"
+                  >
+                    <span className="relative z-10">Agregar al carrito</span>
+                    <ArrowIcon />
+                  </button>
+                </div>
               </div>
             </div>
-
-            {/* Acciones */}
-            <div className="mt-3 flex flex-col gap-2 sm:mt-7 sm:flex-row sm:gap-3">
-              <button
-                type="button"
-                className="flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[var(--natt-brown)] px-3 text-[9px] font-bold text-white shadow-md transition-all hover:bg-[var(--natt-pink)] sm:min-h-14 sm:gap-3 sm:px-7 sm:text-sm"
-                onClick={() => {
-                  alert(`${quantity} producto(s) agregado(s) al carrito.`);
-                }}
-              >
-                Agregar al carrito
-                <ArrowIcon />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFavorite((current) => !current)}
-                className={`flex h-10 w-full shrink-0 items-center justify-center rounded-full border bg-white transition-all hover:scale-105 sm:h-14 sm:w-14 ${
-                  favorite
-                    ? "border-[var(--natt-pink)] text-[var(--natt-pink)]"
-                    : "border-[var(--natt-brown)]/15 text-[var(--natt-brown)]"
-                }`}
-                aria-label={
-                  favorite
-                    ? "Quitar producto de favoritos"
-                    : "Agregar producto a favoritos"
-                }
-              >
-                <HeartIcon filled={favorite} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Información adicional */}
-        <div className="mt-5 grid grid-cols-3 gap-2 sm:mt-8 sm:gap-3">
-          <div className="rounded-[16px] bg-[#E8B9C9] p-3 sm:rounded-[20px] sm:p-4">
-            <p className="text-[7px] font-bold uppercase tracking-[0.1em] text-[var(--natt-brown)] sm:text-[9px] sm:tracking-[0.15em]">
-              Envíos
-            </p>
-
-            <p className="mt-1 text-[8px] leading-4 text-[var(--natt-brown)]/70 sm:mt-2 sm:text-xs sm:leading-5">
-              Envíos a todo el país.
-            </p>
-          </div>
-
-          <div className="rounded-[16px] bg-[#E8B9C9] p-3 sm:rounded-[20px] sm:p-4">
-            <p className="text-[7px] font-bold uppercase tracking-[0.1em] text-[var(--natt-brown)] sm:text-[9px] sm:tracking-[0.15em]">
-              Compra
-            </p>
-
-            <p className="mt-1 text-[8px] leading-4 text-[var(--natt-brown)]/70 sm:mt-2 sm:text-xs sm:leading-5">
-              Compra segura.
-            </p>
-          </div>
-
-          <div className="rounded-[16px] bg-[#E8B9C9] p-3 sm:rounded-[20px] sm:p-4">
-            <p className="text-[7px] font-bold uppercase tracking-[0.1em] text-[var(--natt-brown)] sm:text-[9px] sm:tracking-[0.15em]">
-              Atención
-            </p>
-
-            <p className="mt-1 text-[8px] leading-4 text-[var(--natt-brown)]/70 sm:mt-2 sm:text-xs sm:leading-5">
-              Estamos para ayudarte.
-            </p>
           </div>
         </div>
       </section>
 
-      {/* Reseñas */}
-      <section className="mx-auto max-w-7xl px-3 pb-10 sm:px-6 lg:px-8">
-        <div className="rounded-[28px] bg-[#E8B9C9] p-4 sm:rounded-[32px] sm:p-8 lg:p-10">
-          <div className="grid gap-7 lg:grid-cols-[280px_1fr] lg:gap-10">
-            {/* Resumen */}
+      {/* =====================================
+          OPINIONES / RESEÑAS REALES
+      ====================================== */}
+      <section className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 sm:pb-10 lg:px-8">
+        <div className="relative overflow-hidden rounded-[25px] border border-white/60 bg-white/25 p-4 shadow-[0_12px_35px_rgba(90,45,65,0.04)] backdrop-blur-sm sm:rounded-[28px] sm:p-6 lg:p-7">
+          <div className="grid gap-5 lg:grid-cols-[220px_1fr] lg:gap-7">
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-[var(--natt-pink)] sm:text-[10px] sm:tracking-[0.3em]">
+              <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--natt-pink)] sm:text-[9px]">
                 Opiniones
               </p>
-
-              <h2 className="mt-2 text-2xl font-semibold text-[var(--natt-brown)] sm:text-3xl">
+              <h2 className="mt-1.5 text-xl font-semibold text-[var(--natt-dark)] sm:text-2xl">
                 Lo que dicen
               </h2>
 
-              <div className="mt-5 rounded-[22px] bg-white p-5 text-center">
-                <p className="text-4xl font-bold text-[var(--natt-brown)]">
+              <div className="mt-4 rounded-[18px] border border-white/70 bg-white/55 p-4 text-center backdrop-blur-sm">
+                <p className="text-3xl font-bold text-[var(--natt-dark)]">
                   {averageRating}
                 </p>
-
-                <div className="mt-2 flex justify-center gap-1 text-[var(--natt-pink)]">
+                <div className="mt-1.5 flex justify-center gap-0.5 text-[var(--natt-pink)]">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <StarIcon key={star} filled />
                   ))}
                 </div>
-
-                <p className="mt-2 text-[10px] text-[var(--natt-brown)]/55">
-                  Basado en {reviews.length} reseñas
+                <p className="mt-1.5 text-[9px] text-[var(--natt-dark)]/45">
+                  Basado en {reviews.length} {reviews.length === 1 ? "reseña" : "reseñas"}
                 </p>
               </div>
 
@@ -523,82 +519,104 @@ export default function ProductDetail({
                     .getElementById("escribir-resena")
                     ?.scrollIntoView({ behavior: "smooth" })
                 }
-                className="mt-3 w-full rounded-full bg-[var(--natt-brown)] px-5 py-3 text-xs font-bold text-white transition-all hover:bg-[var(--natt-pink)]"
+                className="mt-2.5 w-full rounded-full bg-[var(--natt-dark)] px-4 py-2.5 text-[10px] font-bold text-white transition-all hover:bg-[var(--natt-pink)]"
               >
                 Escribir una reseña
               </button>
             </div>
 
-            {/* Comentarios */}
-            <div className="space-y-3">
-              {reviews.map((review) => (
-                <article
-                  key={review.id}
-                  className="rounded-[22px] bg-white p-4 sm:p-6"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-bold text-[var(--natt-brown)]">
-                        {review.name}
-                      </p>
-
-                      <div className="mt-1 flex gap-1 text-[var(--natt-pink)]">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <StarIcon
-                            key={star}
-                            filled={star <= review.rating}
-                          />
-                        ))}
+            <div className="space-y-2.5">
+              {reviews.length === 0 ? (
+                <div className="rounded-[18px] border border-white/70 bg-white/55 p-8 text-center text-xs text-[var(--natt-dark)]/60">
+                  Aún no hay reseñas para este producto. ¡Sé el primero en dejar tu opinión! ✨
+                </div>
+              ) : (
+                reviews.map((review) => (
+                  <article
+                    key={review.id}
+                    className="rounded-[18px] border border-white/70 bg-white/55 p-4 backdrop-blur-sm sm:p-5"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-bold text-[var(--natt-dark)]">
+                          {review.nombre}
+                        </p>
+                        <div className="mt-1 flex gap-0.5 text-[var(--natt-pink)]">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <StarIcon
+                              key={star}
+                              filled={star <= review.calificacion}
+                            />
+                          ))}
+                        </div>
                       </div>
+                      <span className="text-[8px] text-[var(--natt-dark)]/40">
+                        {new Date(review.created_at).toLocaleDateString("es-CO")}
+                      </span>
                     </div>
 
-                    <span className="text-[9px] text-[var(--natt-brown)]/45">
-                      {review.date}
-                    </span>
-                  </div>
+                    <p className="mt-2 text-[11px] leading-5 text-[var(--natt-dark)]/60 sm:text-xs">
+                      {review.comentario}
+                    </p>
 
-                  <p className="mt-3 text-xs leading-6 text-[var(--natt-brown)]/70 sm:text-sm">
-                    {review.comment}
-                  </p>
-
-                  {review.photo && (
-                    <div className="mt-3 overflow-hidden rounded-[16px]">
-                      <img
-                        src={review.photo}
-                        alt={`Foto compartida por ${review.name}`}
-                        className="h-28 w-28 object-cover"
-                      />
-                    </div>
-                  )}
-                </article>
-              ))}
+                    {review.foto && (
+                      <div className="mt-2.5 relative h-24 w-24 overflow-hidden rounded-[13px]">
+                        <Image
+                          src={review.foto}
+                          alt={`Foto compartida por ${review.nombre}`}
+                          fill
+                          sizes="96px"
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                  </article>
+                ))
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Escribir reseña */}
+      {/* =====================================
+          ESCRIBIR RESEÑA (FORMULARIO REAL)
+      ====================================== */}
       <section
         id="escribir-resena"
-        className="mx-auto max-w-5xl px-3 pb-12 sm:px-6 lg:px-8"
+        className="mx-auto max-w-4xl px-4 pb-9 sm:px-6 lg:px-8"
       >
-        <div className="rounded-[28px] bg-[#E8B9C9] p-5 sm:rounded-[32px] sm:p-8">
+        <form
+          onSubmit={handleReviewSubmit}
+          className="relative overflow-hidden rounded-[25px] border border-white/60 bg-white/25 p-4 shadow-[0_12px_35px_rgba(90,45,65,0.04)] backdrop-blur-sm sm:rounded-[28px] sm:p-6"
+        >
           <div className="text-center">
-            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-[var(--natt-pink)] sm:text-[10px] sm:tracking-[0.3em]">
+            <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--natt-pink)] sm:text-[9px]">
               Comparte tu experiencia
             </p>
-
-            <h2 className="mt-2 text-2xl font-semibold text-[var(--natt-brown)] sm:text-3xl">
+            <h2 className="mt-1.5 text-xl font-semibold text-[var(--natt-dark)] sm:text-2xl">
               ¿Qué te pareció este producto?
             </h2>
           </div>
 
-          <div className="mt-6">
-            <p className="mb-3 text-xs font-bold text-[var(--natt-brown)]">
+          <div className="mt-5">
+            <label className="mb-2 block text-[10px] font-bold text-[var(--natt-dark)]">
+              Tu nombre
+            </label>
+            <input
+              type="text"
+              value={reviewerName}
+              onChange={(e) => setReviewerName(e.target.value)}
+              placeholder="Ej: María José"
+              className="w-full rounded-[17px] border border-[var(--natt-dark)]/10 bg-white/65 px-4 py-3 text-xs text-[var(--natt-dark)] outline-none transition-all placeholder:text-[var(--natt-dark)]/35 focus:border-[var(--natt-pink)]"
+              required
+            />
+          </div>
+
+          <div className="mt-5">
+            <p className="mb-2 text-[10px] font-bold text-[var(--natt-dark)]">
               Tu calificación
             </p>
-
-            <div className="flex gap-1">
+            <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -607,14 +625,14 @@ export default function ProductDetail({
                   className={`transition-all hover:scale-110 ${
                     star <= selectedRating
                       ? "text-[var(--natt-pink)]"
-                      : "text-[var(--natt-brown)]/20"
+                      : "text-[var(--natt-dark)]/20"
                   }`}
                   aria-label={`Calificar con ${star} estrellas`}
                 >
                   <svg
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="h-8 w-8"
+                    className="h-6 w-6"
                     aria-hidden="true"
                   >
                     <path d="M12 2.8L14.82 8.52L21.13 9.44L16.56 13.9L17.64 20.19L12 17.22L6.36 20.19L7.44 13.9L2.87 9.44L9.18 8.52L12 2.8Z" />
@@ -624,59 +642,51 @@ export default function ProductDetail({
             </div>
           </div>
 
-          <div className="mt-6">
-            <label
-              htmlFor="review"
-              className="mb-3 block text-xs font-bold text-[var(--natt-brown)]"
-            >
+          <div className="mt-5">
+            <label className="mb-2 block text-[10px] font-bold text-[var(--natt-dark)]">
               Tu comentario
             </label>
-
             <textarea
-              id="review"
               value={reviewText}
-              onChange={(event) => setReviewText(event.target.value)}
+              onChange={(e) => setReviewText(e.target.value)}
               placeholder="Cuéntanos qué te pareció..."
-              rows={5}
-              className="w-full resize-none rounded-[20px] border border-[var(--natt-brown)]/10 bg-white px-5 py-4 text-sm text-[var(--natt-brown)] outline-none transition-all placeholder:text-[var(--natt-brown)]/35 focus:border-[var(--natt-pink)]"
+              rows={4}
+              className="w-full resize-none rounded-[17px] border border-[var(--natt-dark)]/10 bg-white/65 px-4 py-3 text-xs text-[var(--natt-dark)] outline-none transition-all placeholder:text-[var(--natt-dark)]/35 focus:border-[var(--natt-pink)]"
+              required
             />
           </div>
 
-          <div className="mt-6">
-            <p className="mb-3 text-xs font-bold text-[var(--natt-brown)]">
-              Agrega una foto
+          <div className="mt-5">
+            <p className="mb-2 text-[10px] font-bold text-[var(--natt-dark)]">
+              Agrega una foto (opcional)
             </p>
-
             <label
               htmlFor="review-photo"
-              className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-[var(--natt-pink)]/30 bg-white px-5 text-center transition-colors hover:border-[var(--natt-pink)]"
+              className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-[17px] border-2 border-dashed border-[var(--natt-pink)]/25 bg-white/50 px-4 text-center transition-colors hover:border-[var(--natt-pink)]"
             >
-              {reviewPhoto ? (
+              {reviewPhotoPreview ? (
                 <div className="relative">
-                  <img
-                    src={reviewPhoto}
-                    alt="Vista previa de la foto"
-                    className="h-24 w-24 rounded-[16px] object-cover"
-                  />
-
-                  <span className="mt-2 block text-[10px] font-semibold text-[var(--natt-pink)]">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-[13px]">
+                    <Image
+                      src={reviewPhotoPreview}
+                      alt="Vista previa"
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <span className="mt-1.5 block text-[9px] font-semibold text-[var(--natt-pink)]">
                     Foto seleccionada
                   </span>
                 </div>
               ) : (
                 <>
-                  <span className="text-3xl text-[var(--natt-pink)]">+</span>
-
-                  <span className="mt-1 text-xs font-semibold text-[var(--natt-brown)]">
+                  <span className="text-2xl text-[var(--natt-pink)]">+</span>
+                  <span className="mt-1 text-[10px] font-semibold text-[var(--natt-dark)]">
                     Seleccionar una foto
-                  </span>
-
-                  <span className="mt-1 text-[10px] text-[var(--natt-brown)]/45">
-                    JPG, PNG o WEBP
                   </span>
                 </>
               )}
-
               <input
                 id="review-photo"
                 type="file"
@@ -688,63 +698,62 @@ export default function ProductDetail({
           </div>
 
           <button
-            type="button"
-            onClick={handleReviewSubmit}
-            className="mt-6 w-full rounded-full bg-[var(--natt-brown)] px-6 py-4 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-[var(--natt-pink)]"
+            type="submit"
+            disabled={submittingReview}
+            className="mt-5 w-full rounded-full bg-[var(--natt-dark)] px-5 py-3 text-xs font-bold text-white transition-all hover:bg-[var(--natt-pink)] disabled:opacity-50"
           >
-            Publicar reseña
+            {submittingReview ? "Publicando..." : "Publicar reseña"}
           </button>
-        </div>
+        </form>
       </section>
 
-      {/* Productos relacionados */}
+      {/* =====================================
+          PRODUCTOS RELACIONADOS
+      ====================================== */}
       {relatedProducts.length > 0 && (
-        <section className="mx-auto max-w-7xl px-3 pb-12 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-end justify-between gap-4">
+        <section className="mx-auto max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
+          <div className="mb-5 flex items-end justify-between gap-4">
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-[var(--natt-pink)] sm:text-[10px] sm:tracking-[0.3em]">
+              <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--natt-pink)] sm:text-[9px]">
                 También te puede gustar
               </p>
-
-              <h2 className="mt-2 text-2xl font-semibold text-[var(--natt-brown)] sm:text-3xl">
+              <h2 className="mt-1.5 text-xl font-semibold text-[var(--natt-dark)] sm:text-2xl">
                 Más de {product.category.toLowerCase()}
               </h2>
             </div>
-
             <Link
-              href="/tienda/maquillaje"
-              className="hidden items-center gap-2 text-xs font-bold text-[var(--natt-brown)] transition-colors hover:text-[var(--natt-pink)] sm:flex"
+              href={sectionHref}
+              className="hidden items-center gap-2 text-[10px] font-bold text-[var(--natt-dark)] transition-colors hover:text-[var(--natt-pink)] sm:flex"
             >
               Ver todos
               <ArrowIcon />
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4">
             {relatedProducts.map((related) => (
               <Link
                 key={related.id}
                 href={`/tienda/producto/${related.id}`}
-                className="group overflow-hidden rounded-[24px] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="group overflow-hidden rounded-[20px] border border-white/60 bg-white/45 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
               >
-                <div className="aspect-square overflow-hidden bg-[var(--natt-cream)]">
-                  <img
+                <div className="relative aspect-square overflow-hidden bg-[var(--natt-bg-soft)]">
+                  <Image
                     src={related.image}
                     alt={related.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
-
-                <div className="p-4">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-[var(--natt-pink)]">
+                <div className="p-3 sm:p-3.5">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[var(--natt-pink)]">
                     {related.category}
                   </p>
-
-                  <h3 className="mt-2 line-clamp-2 text-sm font-semibold leading-5 text-[var(--natt-brown)]">
+                  <h3 className="mt-1.5 line-clamp-2 text-xs font-semibold leading-4 text-[var(--natt-dark)] sm:text-sm">
                     {related.name}
                   </h3>
-
-                  <p className="mt-3 text-sm font-bold text-[var(--natt-brown)]">
+                  <p className="mt-2 text-xs font-bold text-[var(--natt-dark)]">
                     {new Intl.NumberFormat("es-CO", {
                       style: "currency",
                       currency: "COP",

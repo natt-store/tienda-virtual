@@ -1,157 +1,29 @@
 "use client";
 
+import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import ProductCard from "@/components/products/ProductCard";
+import { useProductsBySection } from "@/lib/useProducts";
+import { usePaginaCategoria } from "@/lib/useCategorias";
 
-type Product = {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  image: string;
-  badge?: string;
+const fallback = {
+  etiqueta: "Colección Maquillaje",
+  titulo: "Maquillaje",
+  subtitulo: "para enamorarte.",
+  descripcion:
+    "Descubre productos para crear looks suaves, brillantes y llenos de personalidad. Encuentra tus favoritos y hazlos parte de tu rutina.",
+  imagen_principal: null as string | null,
+  color_principal: "#ff1493",
+  color_secundario: "#00d9d9",
+  banner_final_titulo: "Detalles que hacen la diferencia.",
+  banner_final_descripcion:
+    "Sigue explorando Natt Store y encuentra esos productos que simplemente se sienten hechos para ti.",
+  banner_final_texto_boton: "Explorar tienda",
+  banner_final_enlace: "/tienda",
 };
-
-const makeupProducts: Product[] = [
-  {
-    id: 1,
-    name: "Set de maquillaje esencial",
-    category: "Rostro",
-    price: 45900,
-    image:
-      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=85",
-    badge: "Destacado",
-  },
-  {
-    id: 2,
-    name: "Paleta de sombras en tonos suaves",
-    category: "Ojos",
-    price: 52900,
-    image:
-      "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=900&q=85",
-    badge: "Nuevo",
-  },
-  {
-    id: 3,
-    name: "Kit de belleza para todos los días",
-    category: "Rostro",
-    price: 39900,
-    image:
-      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    id: 4,
-    name: "Labial en tono rosado",
-    category: "Labios",
-    price: 28900,
-    image:
-      "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=900&q=85",
-    badge: "Favorito",
-  },
-  {
-    id: 5,
-    name: "Rubor de acabado natural",
-    category: "Rostro",
-    price: 31900,
-    image:
-      "https://images.unsplash.com/photo-1526045478516-99145907023c?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    id: 6,
-    name: "Brochas para un look perfecto",
-    category: "Brochas",
-    price: 42900,
-    image:
-      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    id: 7,
-    name: "Delineador negro de larga duración",
-    category: "Ojos",
-    price: 26900,
-    image:
-      "https://images.unsplash.com/photo-1631214524020-7e18dbf5f1d8?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    id: 8,
-    name: "Gloss rosado efecto brillo",
-    category: "Labios",
-    price: 24900,
-    image:
-      "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=900&q=85",
-    badge: "Nuevo",
-  },
-  {
-    id: 9,
-    name: "Set de brochas Natt",
-    category: "Brochas",
-    price: 69900,
-    image:
-      "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=900&q=85",
-  },
-];
-
-const categories = [
-  "Todos",
-  "Rostro",
-  "Ojos",
-  "Labios",
-  "Brochas",
-];
-
-const sortOptions = [
-  "Más relevantes",
-  "Precio: menor a mayor",
-  "Precio: mayor a menor",
-];
-
-function ArrowRightIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
-      <path
-        d="M5 12H19"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M13 6L19 12L13 18"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function ArrowLeftIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
-      <path
-        d="M15 5L8 12L15 19"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function SearchIcon() {
   return (
@@ -159,319 +31,345 @@ function SearchIcon() {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
+      className="h-4 w-4 text-[#67545d]"
       aria-hidden="true"
     >
-      <circle
-        cx="11"
-        cy="11"
-        r="6.5"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
       <path
-        d="M16 16L21 21"
+        d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="2"
         strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function SparkleIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
-      aria-hidden="true"
-    >
-      <path
-        d="M12 2L13.7 8.3L20 10L13.7 11.7L12 18L10.3 11.7L4 10L10.3 8.3L12 2Z"
-        fill="currentColor"
-      />
-      <path
-        d="M19 16L19.7 18.3L22 19L19.7 19.7L19 22L18.3 19.7L16 19L18.3 18.3L19 16Z"
-        fill="currentColor"
+        strokeLinejoin="round"
       />
     </svg>
   );
 }
 
 export default function MaquillajePage() {
-  const [activeCategory, setActiveCategory] = useState("Todos");
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("Más relevantes");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Traer productos reales de Supabase en tiempo real para la sección Maquillaje
+  const { products: allProducts, loading } = useProductsBySection("Maquillaje");
+  const { pagina } = usePaginaCategoria("maquillaje");
+
+  const info = pagina ?? fallback;
+
+  const colorPrincipal = info.color_principal || fallback.color_principal;
+  const colorSecundario = info.color_secundario || fallback.color_secundario;
 
   const filteredProducts = useMemo(() => {
-    let result = [...makeupProducts];
-
-    if (activeCategory !== "Todos") {
-      result = result.filter(
-        (product) => product.category === activeCategory
-      );
+    if (!searchTerm.trim()) {
+      return allProducts;
     }
 
-    if (search.trim()) {
-      const searchText = search.toLowerCase();
-
-      result = result.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchText) ||
-          product.category.toLowerCase().includes(searchText)
-      );
-    }
-
-    if (sort === "Precio: menor a mayor") {
-      result.sort((a, b) => a.price - b.price);
-    }
-
-    if (sort === "Precio: mayor a menor") {
-      result.sort((a, b) => b.price - a.price);
-    }
-
-    return result;
-  }, [activeCategory, search, sort]);
+    const term = searchTerm.toLowerCase();
+    return allProducts.filter(
+      (product) =>
+        product.name.toLowerCase().includes(term) ||
+        product.category.toLowerCase().includes(term)
+    );
+  }, [searchTerm, allProducts]);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#F9E3E9] text-[var(--natt-dark)]">
+    <main className="min-h-screen overflow-hidden bg-[#eadfd5] text-[#24191f]">
       <Navbar />
 
-      {/* REGRESAR A LA TIENDA */}
-      <div className="mx-auto max-w-7xl px-5 pt-5 sm:px-6 lg:px-8">
-        <a
-          href="/tienda"
-          className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--natt-brown)] shadow-sm transition-all duration-300 hover:-translate-x-0.5 hover:bg-[var(--natt-pink-light)]"
-        >
-          <ArrowLeftIcon />
-          Volver a la tienda
-        </a>
-      </div>
+      {/* =========================================================
+          HERO
+      ========================================================= */}
+      <section className="relative px-4 pb-10 pt-6 sm:px-6 lg:px-10 lg:pb-14 lg:pt-8">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] border border-white/60 bg-[#f7eee7] shadow-[0_25px_70px_rgba(105,55,65,0.16)]">
+          <div
+            className="absolute -left-24 top-10 h-64 w-64 rounded-full blur-3xl"
+            style={{ backgroundColor: `${colorPrincipal}33` }}
+          />
 
-      {/* HERO */}
-      <section className="mx-auto max-w-7xl px-5 pb-8 pt-5 sm:px-6 sm:pt-8 lg:px-8">
-        <div className="relative overflow-hidden rounded-[40px] bg-[var(--natt-pink-light)]">
-          <div className="absolute -right-28 -top-28 h-80 w-80 rounded-full bg-white/25" />
+          <div
+            className="absolute -right-20 bottom-0 h-72 w-72 rounded-full blur-3xl"
+            style={{ backgroundColor: `${colorSecundario}33` }}
+          />
 
-          <div className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-[var(--natt-pink)]/15" />
+          <div
+            className="pointer-events-none absolute -right-24 top-8 h-52 w-[480px] rotate-[12deg] rounded-[50%] border-[2px]"
+            style={{ borderColor: `${colorPrincipal}66` }}
+          />
 
-          <div className="absolute right-[35%] top-12 h-3 w-3 rounded-full bg-white/50" />
+          <div
+            className="pointer-events-none absolute -right-32 top-20 h-52 w-[500px] rotate-[12deg] rounded-[50%] border-[2px]"
+            style={{ borderColor: `${colorSecundario}73` }}
+          />
 
-          <div className="absolute bottom-20 right-[45%] h-2 w-2 rounded-full bg-[var(--natt-brown)]/20" />
-
-          <div className="relative z-10 grid min-h-[480px] items-center lg:grid-cols-[1fr_0.9fr]">
-            <div className="px-7 py-12 sm:px-12 lg:px-16">
-              <div className="flex items-center gap-3">
-                <span className="h-px w-8 bg-[var(--natt-brown)]/35" />
-
-                <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--natt-brown)]/60">
-                  Natt Beauty
-                </span>
+          <div className="relative grid min-h-[390px] items-center gap-8 px-7 py-12 sm:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:px-16 lg:py-14">
+            {/* TEXTO */}
+            <div className="relative z-10 max-w-xl">
+              <div
+                className="mb-5 inline-flex items-center gap-2 rounded-full border bg-white/65 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] backdrop-blur-md"
+                style={{
+                  borderColor: `${colorPrincipal}33`,
+                  color: colorPrincipal,
+                }}
+              >
+                {info.etiqueta || fallback.etiqueta}
               </div>
 
-              <h1 className="mt-6 max-w-xl text-5xl font-semibold leading-[0.95] tracking-[-0.04em] text-[var(--natt-brown)] sm:text-6xl lg:text-7xl">
-                Maquillaje
-                <span className="block text-[var(--natt-pink)]">
-                  para sentirte tú.
+              <h1 className="text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:text-5xl lg:text-6xl">
+                {info.titulo}
+                <br />
+                <span style={{ color: colorPrincipal }}>
+                  {info.subtitulo}
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-md text-sm leading-6 text-[var(--natt-brown)]/65 sm:text-base">
-                Descubre tonos, texturas y pequeños esenciales para crear looks
-                que se sientan como tú.
+              <p className="mt-6 max-w-md text-sm leading-7 text-[#67545d] sm:text-base">
+                {info.descripcion}
               </p>
 
-              <div className="mt-8">
+              <div className="mt-8 flex flex-wrap gap-3">
                 <a
                   href="#productos"
-                  className="inline-flex items-center gap-3 rounded-full bg-[var(--natt-brown)] px-6 py-3.5 text-xs font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--natt-pink)]"
+                  className="rounded-full px-6 py-3 text-sm font-bold text-white shadow-[0_10px_28px_rgba(0,0,0,0.15)] transition hover:-translate-y-0.5"
+                  style={{ backgroundColor: colorPrincipal }}
                 >
-                  Explorar productos
-                  <ArrowRightIcon />
+                  Ver productos
                 </a>
+
+                <Link
+                  href="/tienda"
+                  className="rounded-full border border-[#24191f]/10 bg-white/70 px-6 py-3 text-sm font-bold text-[#24191f] backdrop-blur transition hover:bg-white"
+                >
+                  Volver a tienda
+                </Link>
               </div>
             </div>
 
-            <div className="relative flex min-h-[360px] items-center justify-center px-7 pb-10 lg:min-h-[480px] lg:px-10 lg:pb-0">
-              <div className="absolute right-8 top-10 h-24 w-24 rounded-full bg-white/45 blur-sm" />
+            {/* COMPOSICIÓN VISUAL OPTIMIZADA */}
+            <div className="relative mx-auto h-[270px] w-full max-w-[480px] lg:h-[330px]">
+              <div
+                className="absolute left-1/2 top-1/2 h-[220px] w-[220px] -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_25px_55px_rgba(255,20,147,0.22)] sm:h-[260px] sm:w-[260px]"
+                style={{
+                  background: `linear-gradient(135deg, #fff8f4 0%, ${colorPrincipal}40 60%, ${colorPrincipal} 100%)`,
+                }}
+              />
 
-              <div className="absolute bottom-14 left-10 h-16 w-16 rounded-full bg-[var(--natt-pink)]/25" />
+              <div
+                className="absolute right-[8%] top-[4%] h-20 w-20 rounded-full blur-xl"
+                style={{ backgroundColor: `${colorSecundario}33` }}
+              />
 
-              <div className="relative w-full max-w-[390px] rotate-[-3deg] rounded-[38px] bg-white p-4 shadow-2xl transition-transform duration-700 hover:rotate-0">
-                <div className="overflow-hidden rounded-[30px] bg-[#FCECEF]">
-                  <img
-                    src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1100&q=90"
-                    alt="Productos de maquillaje"
-                    className="aspect-[4/3] w-full object-cover"
-                  />
-                </div>
-
-                <div className="flex items-end justify-between px-3 pb-2 pt-5">
-                  <div>
-                    <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-[var(--natt-pink)]">
-                      Colección
-                    </span>
-
-                    <p className="mt-1 text-lg font-semibold text-[var(--natt-brown)]">
-                      Beauty Edit
-                    </p>
-                  </div>
-
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--natt-pink)] text-white">
-                    <SparkleIcon />
-                  </span>
-                </div>
+              <div className="absolute left-1/2 top-1/2 z-10 h-[205px] w-[165px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border-4 border-white/80 bg-white shadow-[0_24px_45px_rgba(80,40,55,0.2)] sm:h-[235px] sm:w-[190px]">
+                <Image
+                  src={
+                    info.imagen_principal ||
+                    allProducts[0]?.image ||
+                    "/brand/logo.png"
+                  }
+                  alt={allProducts[0]?.name || "Maquillaje Natt Store"}
+                  fill
+                  sizes="(max-width: 768px) 190px, 235px"
+                  className="object-cover"
+                  priority
+                />
               </div>
+
+              <div
+                className="absolute bottom-[7%] left-1/2 h-[3px] w-[170px] -translate-x-1/2 rounded-full"
+                style={{
+                  backgroundColor: colorSecundario,
+                  boxShadow: `0 0 18px ${colorSecundario}`,
+                }}
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* PRODUCTOS */}
-      <section
-        id="productos"
-        className="mx-auto max-w-7xl scroll-mt-8 px-5 pb-24 pt-10 sm:px-6 lg:px-8"
-      >
-        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+      {/* =========================================================
+          BARRA DE BÚSQUEDA Y TÍTULO
+      ========================================================= */}
+      <section className="px-4 pb-7 sm:px-6 lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--natt-pink)]">
-              Descubre tu favorito
-            </span>
+            <p
+              className="text-xs font-bold uppercase tracking-[0.2em]"
+              style={{ color: colorPrincipal }}
+            >
+              Catálogo completo
+            </p>
 
-            <h2 className="mt-3 text-4xl font-semibold tracking-tight text-[var(--natt-brown)] sm:text-5xl">
-              Productos de belleza
+            <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
+              Encuentra tus favoritos
             </h2>
           </div>
 
-          <p className="max-w-sm text-sm leading-6 text-[var(--natt-brown)]/50">
-            Encuentra productos para crear tu rutina y darle tu propio toque a
-            cada look.
-          </p>
-        </div>
-
-        {/* BUSCADOR Y ORDEN */}
-        <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-md">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--natt-brown)]/45">
+          <div className="relative w-full sm:w-80">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
               <SearchIcon />
             </span>
-
             <input
               type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar productos..."
-              className="w-full rounded-full border border-[var(--natt-brown)]/10 bg-white py-3.5 pl-12 pr-5 text-sm text-[var(--natt-brown)] outline-none transition-all placeholder:text-[var(--natt-brown)]/35 focus:border-[var(--natt-pink)] focus:ring-4 focus:ring-[var(--natt-pink)]/10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por nombre, categoría..."
+              className="w-full rounded-full border border-[#24191f]/10 bg-white/80 py-3 pl-11 pr-4 text-xs font-medium text-[#24191f] shadow-sm backdrop-blur outline-none transition focus:border-[#ff1493] focus:bg-white"
             />
-          </div>
-
-          <select
-            value={sort}
-            onChange={(event) => setSort(event.target.value)}
-            className="rounded-full border border-[var(--natt-brown)]/10 bg-white px-5 py-3.5 text-xs font-semibold text-[var(--natt-brown)] outline-none focus:border-[var(--natt-pink)]"
-          >
-            {sortOptions.map((option) => (
-              <option key={option}>{option}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* FILTROS */}
-        <div className="mt-6 flex flex-wrap gap-3">
-          {categories.map((category) => {
-            const active = activeCategory === category;
-
-            return (
+            {searchTerm && (
               <button
-                key={category}
                 type="button"
-                onClick={() => setActiveCategory(category)}
-                className={`rounded-full px-5 py-3 text-xs font-bold transition-all duration-300 ${
-                  active
-                    ? "bg-[var(--natt-brown)] text-white shadow-md"
-                    : "bg-white text-[var(--natt-brown)] hover:-translate-y-0.5 hover:bg-[var(--natt-pink-light)]"
-                }`}
+                onClick={() => setSearchTerm("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-bold text-[#67545d] hover:text-[#ff1493]"
               >
-                {category}
+                ✕
               </button>
-            );
-          })}
+            )}
+          </div>
         </div>
+      </section>
 
-        {/* CONTADOR */}
-        <div className="mt-8 flex items-center justify-between">
-          <p className="text-xs text-[var(--natt-brown)]/45">
-            {filteredProducts.length}{" "}
-            {filteredProducts.length === 1 ? "producto" : "productos"}
-          </p>
+      {/* =========================================================
+          PRODUCTOS
+      ========================================================= */}
+      <section
+        id="productos"
+        className="relative px-4 pb-16 sm:px-6 lg:px-10 lg:pb-20"
+      >
+        <div
+          className="pointer-events-none absolute left-0 top-20 h-64 w-64 rounded-full blur-3xl"
+          style={{ backgroundColor: `${colorPrincipal}1a` }}
+        />
+        <div
+          className="pointer-events-none absolute right-0 top-1/2 h-72 w-72 rounded-full blur-3xl"
+          style={{ backgroundColor: `${colorSecundario}1a` }}
+        />
 
-          {(search || activeCategory !== "Todos") && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearch("");
-                setActiveCategory("Todos");
-              }}
-              className="text-xs font-bold text-[var(--natt-pink)] transition-colors hover:text-[var(--natt-brown)]"
-            >
-              Limpiar filtros
-            </button>
-          )}
-        </div>
-
-        {/* PRODUCTOS */}
-        {filteredProducts.length > 0 ? (
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                name={product.name}
-                category={product.category}
-                price={product.price}
-                image={product.image}
-                badge={product.badge}
-                href={`/tienda/producto/${product.id}`}
-              />
+        {loading ? (
+          <div className="relative mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse overflow-hidden rounded-[24px] border border-white/70 bg-white/60"
+              >
+                <div className="aspect-[0.88] bg-[#f4e9e2]/60" />
+                <div className="space-y-2 p-3.5 sm:p-4">
+                  <div className="h-2 w-16 rounded bg-[#f4e9e2]" />
+                  <div className="h-3 w-full rounded bg-[#f4e9e2]" />
+                  <div className="h-3 w-3/4 rounded bg-[#f4e9e2]" />
+                </div>
+              </div>
             ))}
           </div>
         ) : (
-          <div className="mt-5 rounded-[30px] bg-white px-6 py-16 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--natt-pink-light)] text-[var(--natt-pink)]">
-              <SearchIcon />
-            </div>
+          <div className="relative mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+            {filteredProducts.map((product) => (
+              <article
+                key={product.id}
+                className="group overflow-hidden rounded-[24px] border border-white/70 bg-white/80 shadow-[0_12px_35px_rgba(70,40,50,0.09)] backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(70,40,50,0.15)]"
+              >
+                <Link href={`/tienda/producto/${product.id}`} className="block">
+                  <div className="relative aspect-[0.88] overflow-hidden bg-[#f4e9e2]">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
 
-            <h3 className="mt-5 text-xl font-semibold text-[var(--natt-brown)]">
-              No encontramos productos
-            </h3>
+                    {product.badge && (
+                      <span
+                        className="absolute left-3 top-3 z-10 rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-wide shadow-sm backdrop-blur"
+                        style={{ color: colorPrincipal }}
+                      >
+                        {product.badge}
+                      </span>
+                    )}
 
-            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[var(--natt-brown)]/50">
-              Prueba con otra búsqueda o selecciona una categoría diferente.
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/30 to-transparent p-3 pt-10 opacity-0 transition group-hover:opacity-100">
+                      <span className="inline-flex rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-[#24191f]">
+                        Ver producto
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+
+                <div className="p-3.5 sm:p-4">
+                  <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-[#00aeb0]">
+                    {product.category}
+                  </p>
+
+                  <Link href={`/tienda/producto/${product.id}`}>
+                    <h3 className="line-clamp-2 min-h-[38px] text-sm font-extrabold leading-5 text-[#24191f] transition hover:opacity-70 sm:text-[15px]">
+                      {product.name}
+                    </h3>
+                  </Link>
+
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <p className="text-sm font-black text-[#24191f] sm:text-base">
+                      ${product.price.toLocaleString("es-CO")}
+                    </p>
+
+                    <Link
+                      href={`/tienda/producto/${product.id}`}
+                      aria-label={`Ver ${product.name}`}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-[0_7px_18px_rgba(0,0,0,0.15)] transition hover:scale-105"
+                      style={{ backgroundColor: colorPrincipal }}
+                    >
+                      →
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+
+        {!loading && filteredProducts.length === 0 && (
+          <div className="mx-auto mt-8 max-w-xl rounded-[24px] border border-white/70 bg-white/70 p-10 text-center shadow-sm">
+            <p className="text-lg font-bold">
+              No encontramos productos con &quot;{searchTerm}&quot;.
             </p>
 
             <button
               type="button"
-              onClick={() => {
-                setSearch("");
-                setActiveCategory("Todos");
-              }}
-              className="mt-6 rounded-full bg-[var(--natt-brown)] px-6 py-3 text-xs font-bold text-white transition-all duration-300 hover:bg-[var(--natt-pink)]"
+              onClick={() => setSearchTerm("")}
+              className="mt-4 rounded-full px-5 py-2.5 text-sm font-bold text-white"
+              style={{ backgroundColor: colorPrincipal }}
             >
-              Ver todos los productos
+              Ver todos
             </button>
           </div>
         )}
+      </section>
 
-        {/* VER MÁS PRODUCTOS */}
-        <div className="mt-14 flex justify-center">
-          <a
-            href="/tienda"
-            className="inline-flex items-center gap-3 rounded-full border border-[var(--natt-brown)]/15 bg-white px-7 py-3.5 text-xs font-bold text-[var(--natt-brown)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--natt-pink-light)]"
-          >
-            <ArrowLeftIcon />
-            Ver más productos
-          </a>
+      {/* =========================================================
+          BANNER FINAL
+      ========================================================= */}
+      <section className="px-4 pb-14 sm:px-6 lg:px-10 lg:pb-20">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[30px] bg-[#24131f] px-7 py-10 text-center shadow-[0_20px_55px_rgba(45,20,35,0.18)] sm:px-12">
+          <div className="absolute -left-16 top-[-80px] h-48 w-48 rounded-full bg-[#ff1493]/30 blur-3xl" />
+          <div className="absolute -right-16 bottom-[-90px] h-56 w-56 rounded-full bg-[#00d9d9]/25 blur-3xl" />
+
+          <div className="pointer-events-none absolute left-1/2 top-5 h-[2px] w-[70%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#ff1493] to-transparent opacity-80" />
+
+          <div className="relative">
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#00f0e8]">
+              Natt Store
+            </p>
+
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">
+              {info.banner_final_titulo}
+            </h2>
+
+            <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-white/65">
+              {info.banner_final_descripcion}
+            </p>
+
+            <Link
+              href={info.banner_final_enlace || "/tienda"}
+              className="mt-7 inline-flex rounded-full bg-[#00d9d9] px-6 py-3 text-sm font-black text-[#172124] shadow-[0_10px_30px_rgba(0,217,217,0.2)] transition hover:-translate-y-0.5"
+            >
+              {info.banner_final_texto_boton || "Explorar tienda"}
+            </Link>
+          </div>
         </div>
       </section>
 

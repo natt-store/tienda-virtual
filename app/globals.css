@@ -1,17 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --natt-cream: #f7eee8;
-  --natt-brown: #6b3028;
-  --natt-pink: #e86b86;
-  --natt-pink-light: #f3a9b9;
-  --natt-aqua: #8bd9d3;
-  --natt-peach: #e8c4ad;
-  --natt-dark: #351c1a;
+  /* Fondo general */
+  --natt-bg: #e8ddd2;
+  --natt-bg-soft: #ded0c3;
+
+  /* Superficies */
   --natt-white: #ffffff;
 
-  --background: var(--natt-cream);
-  --foreground: var(--natt-dark);
+  /* Colores principales Natt */
+  --natt-pink: #ff1493;
+  --natt-pink-bright: #ff2fa4;
+  --natt-pink-soft: #ff8dcc;
+
+  --natt-aqua: #00d9d9;
+  --natt-aqua-bright: #00f0e8;
+  --natt-aqua-soft: #8ff8f1;
+
+  --natt-purple: #a83cff;
+  --natt-purple-bright: #c13cff;
+
+  /* Texto */
+  --natt-black: #16131a;
+  --natt-dark: #211923;
+  --natt-gray: #68616a;
+
+  /* Bordes */
+  --natt-border: rgba(22, 19, 26, 0.1);
+
+  --background: var(--natt-bg);
+  --foreground: var(--natt-black);
 }
 
 * {
@@ -24,7 +42,92 @@ html {
 
 body {
   margin: 0;
-  background: var(--background);
+
+  background:
+    radial-gradient(
+      circle at 8% 12%,
+      rgba(255, 20, 147, 0.06),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 92% 20%,
+      rgba(0, 217, 217, 0.05),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 50% 80%,
+      rgba(168, 60, 255, 0.04),
+      transparent 30%
+    ),
+    var(--natt-bg);
+
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--natt-pink);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--natt-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    var(--natt-pink),
+    var(--natt-purple),
+    var(--natt-aqua)
+  );
+  border-radius: 999px;
+}
+
+.natt-neon-pink {
+  text-shadow:
+    0 0 6px rgba(255, 20, 147, 0.75),
+    0 0 18px rgba(255, 20, 147, 0.45);
+}
+
+.natt-neon-aqua {
+  text-shadow:
+    0 0 6px rgba(0, 217, 217, 0.75),
+    0 0 18px rgba(0, 217, 217, 0.45);
+}
+
+.natt-glow-pink {
+  box-shadow:
+    0 0 10px rgba(255, 20, 147, 0.25),
+    0 0 30px rgba(255, 20, 147, 0.12);
+}
+
+.natt-glow-aqua {
+  box-shadow:
+    0 0 10px rgba(0, 217, 217, 0.25),
+    0 0 30px rgba(0, 217, 217, 0.12);
+}
+
+.natt-glow-purple {
+  box-shadow:
+    0 0 10px rgba(168, 60, 255, 0.22),
+    0 0 30px rgba(168, 60, 255, 0.1);
 }
