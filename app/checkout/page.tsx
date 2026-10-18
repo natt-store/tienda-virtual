@@ -431,7 +431,7 @@ export default function CheckoutPage() {
       `Teléfono: ${savedOrder.buyer.telefono}`
     );
 
-    const whatsappUrl = `https://wa.me/57301492871?text=${whatsappMessage}`;
+    const whatsappUrl = `https://wa.me/573104492871?text=${whatsappMessage}`;
 
     return (
       <main className="min-h-screen overflow-hidden bg-[var(--natt-bg)] text-[var(--natt-black)]">
