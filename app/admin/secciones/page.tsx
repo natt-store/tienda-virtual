@@ -91,12 +91,24 @@ type TarjetaCategoria = {
   activa: boolean;
 };
 
+/* Respaldo completo con las 6 secciones oficiales incluyendo Accesorios y Mascotas */
 const seccionesFallback: Seccion[] = [
-  { id: 1, nombre: "Maquillaje", slug: "maquillaje", descripcion: null, imagen: null, color: "#ff8400", orden: 1, activa: true },
-  { id: 2, nombre: "Hogar", slug: "hogar", descripcion: null, imagen: null, color: "#a83cff", orden: 2, activa: true },
-  { id: 3, nombre: "Papelería", slug: "papeleria-kawaii", descripcion: null, imagen: null, color: "#ff8400", orden: 3, activa: true },
-  { id: 4, nombre: "Temporada", slug: "temporada", descripcion: null, imagen: null, color: "#a83cff", orden: 4, activa: true },
-  { id: 5, nombre: "Accesorios", slug: "accesorios", descripcion: null, imagen: null, color: "#c5a059", orden: 5, activa: true },
+  { id: 1, nombre: "Maquillaje", slug: "maquillaje", descripcion: null, imagen: null, color: "#ff1493", orden: 1, activa: true },
+  { id: 2, nombre: "Hogar", slug: "hogar", descripcion: null, imagen: null, color: "#00d9d9", orden: 2, activa: true },
+  { id: 3, nombre: "Papelería", slug: "papeleria-kawaii", descripcion: null, imagen: null, color: "#a83cff", orden: 3, activa: true },
+  { id: 4, nombre: "Temporada", slug: "temporada", descripcion: null, imagen: null, color: "#ff8400", orden: 4, activa: true },
+  { id: 5, nombre: "Accesorios", slug: "accesorios", descripcion: null, imagen: null, color: "#00d9d9", orden: 5, activa: true },
+  { id: 6, nombre: "Mascotas", slug: "mascotas", descripcion: null, imagen: null, color: "#ff1493", orden: 6, activa: true },
+];
+
+/* Respaldo completo para las tarjetas de la tienda/home */
+const tarjetasFallback: TarjetaCategoria[] = [
+  { id: 1, nombre: "Maquillaje", subtitulo: "Belleza", enlace: "/tienda/maquillaje", imagen: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=90", color: "#ff1493", orden: 1, activa: true },
+  { id: 2, nombre: "Hogar", subtitulo: "Espacios", enlace: "/tienda/hogar", imagen: "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=900&q=90", color: "#00d9d9", orden: 2, activa: true },
+  { id: 3, nombre: "Papelería", subtitulo: "Crear", enlace: "/tienda/papeleria-kawaii", imagen: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=90", color: "#a83cff", orden: 3, activa: true },
+  { id: 4, nombre: "Temporada", subtitulo: "Especial", enlace: "/tienda/temporada", imagen: "https://images.unsplash.com/photo-1509587584298-0f3b3a3a1799?auto=format&fit=crop&w=900&q=90", color: "#ff8400", orden: 4, activa: true },
+  { id: 5, nombre: "Accesorios", subtitulo: "Estilo", enlace: "/tienda/accesorios", imagen: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=900&q=90", color: "#00d9d9", orden: 5, activa: true },
+  { id: 6, nombre: "Mascotas", subtitulo: "Peluditos", enlace: "/tienda/mascotas", imagen: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=90", color: "#ff1493", orden: 6, activa: true },
 ];
 
 /* =========================================================
@@ -106,7 +118,7 @@ export default function AdminSeccionesPage() {
   const [tab, setTab] = useState<"secciones" | "portada">("secciones");
 
   const [secciones, setSecciones] = useState<Seccion[]>(seccionesFallback);
-  const [activeSeccion, setActiveSeccion] = useState<string>("Accesorios");
+  const [activeSeccion, setActiveSeccion] = useState<string>("Maquillaje");
   const [paginas, setPaginas] = useState<Record<string, PaginaCategoria | null>>({});
   const [categorias, setCategorias] = useState<Record<string, Categoria[]>>({});
   const [loading, setLoading] = useState(true);
@@ -131,19 +143,21 @@ export default function AdminSeccionesPage() {
       .select("*")
       .order("orden", { ascending: true });
 
-    const finalSecs = secs && secs.length > 0 ? secs : seccionesFallback;
-    const hasAccesorios = finalSecs.some((s: any) => s.slug === "accesorios" || s.nombre === "Accesorios");
-    const listToUse = hasAccesorios ? finalSecs : [...finalSecs, seccionesFallback[4]];
+    const dbSecs = secs && secs.length > 0 ? secs : seccionesFallback;
+    const finalSecs = seccionesFallback.map((fallbackSec) => {
+      const found = dbSecs.find((ds: any) => ds.slug === fallbackSec.slug || ds.nombre === fallbackSec.nombre);
+      return found || fallbackSec;
+    });
 
-    setSecciones(listToUse);
-    if (listToUse.length > 0 && !activeSeccion) {
-      setActiveSeccion(listToUse[0].nombre);
+    setSecciones(finalSecs);
+    if (finalSecs.length > 0 && !activeSeccion) {
+      setActiveSeccion(finalSecs[0].nombre);
     }
 
     const paginasMap: Record<string, PaginaCategoria | null> = {};
     const categoriasMap: Record<string, Categoria[]> = {};
 
-    for (const s of listToUse) {
+    for (const s of finalSecs) {
       const { data: page } = await supabase
         .from("paginas_categorias")
         .select("*")
@@ -152,20 +166,18 @@ export default function AdminSeccionesPage() {
 
       if (page) {
         paginasMap[s.nombre] = page as PaginaCategoria;
-      } else if (s.slug === "accesorios") {
-        paginasMap[s.nombre] = {
-          id: 99,
-          slug: "accesorios",
-          etiqueta: "Colección Accesorios",
-          titulo: "Accesorios",
-          subtitulo: "para brillar.",
-          descripcion: "Descubre complementos únicos, delicados y llenos de estilo para darle el toque final a cada uno de tus días.",
-          imagen_principal: null,
-          color_principal: "#c5a059",
-          color_secundario: "#7d9d8c",
-        };
       } else {
-        paginasMap[s.nombre] = null;
+        paginasMap[s.nombre] = {
+          id: 99 + s.id,
+          slug: s.slug,
+          etiqueta: `Colección ${s.nombre}`,
+          titulo: s.nombre,
+          subtitulo: "para enamorarte.",
+          descripcion: `Descubre productos increíbles en la sección de ${s.nombre}.`,
+          imagen_principal: null,
+          color_principal: s.color || "#ff1493",
+          color_secundario: "#00d9d9",
+        };
       }
 
       const { data: cats } = await supabase
@@ -185,7 +197,8 @@ export default function AdminSeccionesPage() {
       .select("*")
       .order("orden", { ascending: true });
 
-    setTarjetas(tjs || []);
+    const finalTarjetas = tjs && tjs.length > 0 ? tjs : tarjetasFallback;
+    setTarjetas(finalTarjetas);
     setLoading(false);
   };
 
@@ -241,7 +254,13 @@ export default function AdminSeccionesPage() {
     setSaving(true);
     setMessage("");
 
-    if (currentPage.id === 99) {
+    const { data: existing } = await supabase
+      .from("paginas_categorias")
+      .select("id")
+      .eq("slug", currentPage.slug)
+      .maybeSingle();
+
+    if (!existing) {
       const { error } = await supabase.from("paginas_categorias").insert({
         slug: currentPage.slug,
         etiqueta: currentPage.etiqueta,
@@ -258,7 +277,7 @@ export default function AdminSeccionesPage() {
         setMessage("Error: " + error.message);
         return;
       }
-      setMessage("Hero de Accesorios creado y guardado en Supabase correctamente.");
+      setMessage(`Hero de ${activeSeccion} creado y guardado en Supabase correctamente.`);
       await load();
       setTimeout(() => setMessage(""), 3000);
       return;
@@ -275,7 +294,7 @@ export default function AdminSeccionesPage() {
         color_principal: currentPage.color_principal,
         color_secundario: currentPage.color_secundario,
       })
-      .eq("id", currentPage.id);
+      .eq("slug", currentPage.slug);
 
     setSaving(false);
 
@@ -284,7 +303,7 @@ export default function AdminSeccionesPage() {
       return;
     }
 
-    setMessage("Hero guardado correctamente en Supabase.");
+    setMessage(`Hero de ${activeSeccion} guardado correctamente en Supabase.`);
     setTimeout(() => setMessage(""), 3000);
   };
 
@@ -482,10 +501,10 @@ export default function AdminSeccionesPage() {
             <b>¿Qué editas aquí?</b> Los textos y la <b>imagen circular</b> del hero de cada sección:{" "}
             <span className="font-bold">/tienda/maquillaje</span>,{" "}
             <span className="font-bold">/tienda/hogar</span>,{" "}
-            <span className="font-bold">/tienda/accesorios</span>, etc.
+            <span className="font-bold">/tienda/accesorios</span>,{" "}
+            <span className="font-bold">/tienda/mascotas</span>, etc.
           </div>
 
-          {/* TABS DE SECCIONES */}
           <div className="flex flex-wrap gap-2 rounded-[24px] border border-white/60 bg-white/75 p-3 backdrop-blur-md">
             {secciones.map((s) => {
               const active = activeSeccion === s.nombre;
@@ -812,12 +831,12 @@ export default function AdminSeccionesPage() {
         </>
       )}
 
-      {/* ============ TAB 2: PORTADA ============ */}
+      {/* ============ TAB 2: PORTADA (CON MINIATURAS CORREGIDAS) ============ */}
       {tab === "portada" && (
         <>
           <div className="rounded-2xl border border-[#a83cff]/25 bg-[#a83cff]/5 px-5 py-4 text-xs leading-5 text-[#a83cff]">
             <b>¿Qué editas aquí?</b> Las tarjetas de categoría que aparecen en{" "}
-            <span className="font-bold">/tienda</span> y en el <span className="font-bold">Home</span>.
+            <span className="font-bold">/tienda</span> y en el <span className="font-bold">Home</span> (incluyendo Accesorios y Mascotas).
           </div>
 
           <div className="relative overflow-hidden rounded-[26px] border border-white/60 bg-white/80 p-6 backdrop-blur-md">
@@ -862,13 +881,14 @@ export default function AdminSeccionesPage() {
             {loading ? (
               <div className="h-32 animate-pulse rounded-2xl bg-[#f5eee7]" />
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {tarjetas.map((t) => (
                   <div
                     key={t.id}
                     className="overflow-hidden rounded-2xl border border-[#24191f]/6 bg-[#f9f4f0]"
                   >
-                    <div className="aspect-[4/5] w-full overflow-hidden bg-[#efe4da]">
+                    {/* Contenedor de la miniatura corregido con object-cover y manejo seguro */}
+                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#efe4da]">
                       {t.imagen ? (
                         <img
                           src={t.imagen}
@@ -941,7 +961,7 @@ export default function AdminSeccionesPage() {
                 onChange={(e) =>
                   setEditingTarjeta({ ...editingTarjeta, nombre: e.target.value })
                 }
-                placeholder="Ej: Accesorios"
+                placeholder="Ej: Accesorios o Mascotas"
                 className={inputClass}
               />
             </Field>
@@ -955,7 +975,7 @@ export default function AdminSeccionesPage() {
                     subtitulo: e.target.value,
                   })
                 }
-                placeholder="Ej: Estilo"
+                placeholder="Ej: Estilo o Peluditos"
                 className={inputClass}
               />
             </Field>
@@ -966,7 +986,7 @@ export default function AdminSeccionesPage() {
                 onChange={(e) =>
                   setEditingTarjeta({ ...editingTarjeta, enlace: e.target.value })
                 }
-                placeholder="/tienda/accesorios"
+                placeholder="/tienda/mascotas"
                 className={inputClass}
               />
             </Field>

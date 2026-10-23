@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 
-/* =========================================================
-   TARJETAS DE CATEGORÍAS (Las 5 principales)
-========================================================= */
 export type TarjetaCategoria = {
   id: number;
   nombre: string;
@@ -24,7 +21,7 @@ const fallbackTarjetas: TarjetaCategoria[] = [
     subtitulo: "Belleza",
     imagen: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=90",
     enlace: "/tienda/maquillaje",
-    color: "#ff8400",
+    color: "#ff1493",
     orden: 1,
     activa: true,
   },
@@ -34,7 +31,7 @@ const fallbackTarjetas: TarjetaCategoria[] = [
     subtitulo: "Espacios",
     imagen: "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=900&q=90",
     enlace: "/tienda/hogar",
-    color: "#a83cff",
+    color: "#00d9d9",
     orden: 2,
     activa: true,
   },
@@ -44,7 +41,7 @@ const fallbackTarjetas: TarjetaCategoria[] = [
     subtitulo: "Crear",
     imagen: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=90",
     enlace: "/tienda/papeleria-kawaii",
-    color: "#ff8400",
+    color: "#a83cff",
     orden: 3,
     activa: true,
   },
@@ -54,7 +51,7 @@ const fallbackTarjetas: TarjetaCategoria[] = [
     subtitulo: "Especial",
     imagen: "https://images.unsplash.com/photo-1509587584298-0f3b3a3a1799?auto=format&fit=crop&w=900&q=90",
     enlace: "/tienda/temporada",
-    color: "#a83cff",
+    color: "#ff8400",
     orden: 4,
     activa: true,
   },
@@ -64,22 +61,56 @@ const fallbackTarjetas: TarjetaCategoria[] = [
     subtitulo: "Estilo",
     imagen: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=900&q=90",
     enlace: "/tienda/accesorios",
-    color: "#c5a059",
+    color: "#00d9d9",
     orden: 5,
+    activa: true,
+  },
+  {
+    id: 6,
+    nombre: "Mascotas",
+    subtitulo: "Peluditos",
+    imagen: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=90",
+    enlace: "/tienda/mascotas",
+    color: "#ff1493",
+    orden: 6,
     activa: true,
   },
 ];
 
 export function useTarjetasCategorias() {
-  const [tarjetas] = useState<TarjetaCategoria[]>(fallbackTarjetas);
-  const [loading] = useState(false);
+  const [tarjetas, setTarjetas] = useState<TarjetaCategoria[]>(fallbackTarjetas);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function cargarTarjetasSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from("tarjetas_categorias")
+          .select("*")
+          .order("orden", { ascending: true });
+
+        if (data && data.length > 0) {
+          const nombresEnDb = data.map((t: any) => t.nombre.toLowerCase());
+          const faltantes = fallbackTarjetas.filter(
+            (fb) => !nombresEnDb.includes(fb.nombre.toLowerCase())
+          );
+          setTarjetas([...data, ...faltantes].sort((a, b) => a.orden - b.orden));
+        } else {
+          setTarjetas(fallbackTarjetas);
+        }
+      } catch (err) {
+        setTarjetas(fallbackTarjetas);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    cargarTarjetasSupabase();
+  }, []);
 
   return { tarjetas, loading };
 }
 
-/* =========================================================
-   PÁGINAS DE CATEGORÍAS (Con los nuevos colores de Accesorios)
-========================================================= */
 export type PaginaCategoria = {
   id: number;
   slug: string;
@@ -106,23 +137,7 @@ const fallbackPaginas: Record<string, PaginaCategoria> = {
     subtitulo: "para brillar.",
     descripcion: "Descubre complementos únicos, delicados y llenos de estilo para darle el toque final a cada uno de tus días.",
     imagen_principal: null,
-    color_principal: "#c5a059", // Dorado / Champaña elegante
-    color_secundario: "#7d9d8c", // Verde salvia sofisticado
-    banner_final_titulo: "Detalles que hacen la diferencia.",
-    banner_final_descripcion: "Sigue explorando Natt Store y encuentra esos productos que simplemente se sienten hechos para ti.",
-    banner_final_texto_boton: "Explorar tienda",
-    banner_final_enlace: "/tienda",
-    activa: true,
-  },
-  temporada: {
-    id: 4,
-    slug: "temporada",
-    etiqueta: "Colección Temporada",
-    titulo: "Temporada",
-    subtitulo: "especial.",
-    descripcion: "Descubre los productos ideales para celebrar cada época del año con magia y alegría.",
-    imagen_principal: null,
-    color_principal: "#ff2fa4",
+    color_principal: "#00d9d9",
     color_secundario: "#a83cff",
     banner_final_titulo: "Detalles que hacen la diferencia.",
     banner_final_descripcion: "Sigue explorando Natt Store y encuentra esos productos que simplemente se sienten hechos para ti.",
@@ -130,11 +145,78 @@ const fallbackPaginas: Record<string, PaginaCategoria> = {
     banner_final_enlace: "/tienda",
     activa: true,
   },
+  mascotas: {
+    id: 6,
+    slug: "mascotas",
+    etiqueta: "Colección Mascotas",
+    titulo: "Mascotas",
+    subtitulo: "y peluditos.",
+    descripcion: "Todo lo mejor para el cuidado y la alegría de tus fieles compañeros de cuatro patas.",
+    imagen_principal: null,
+    color_principal: "#ff1493",
+    color_secundario: "#a83cff",
+    banner_final_titulo: "Detalles que hacen felices a tus peluditos.",
+    banner_final_descripcion: "Sigue explorando Natt Store y encuentra todo lo que necesitas para tu mascota.",
+    banner_final_texto_boton: "Explorar tienda",
+    banner_final_enlace: "/tienda",
+    activa: true,
+  },
 };
 
 export function usePaginaCategoria(slug: string) {
-  const [pagina] = useState<PaginaCategoria | null>(fallbackPaginas[slug] || null);
-  const [loading] = useState(false);
+  const [pagina, setPagina] = useState<PaginaCategoria | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function cargarPaginaSupabase() {
+      try {
+        if (!slug) return;
+
+        let { data, error } = await supabase
+          .from("paginas_categorias")
+          .select("*")
+          .ilike("slug", slug)
+          .maybeSingle();
+
+        if (!data) {
+          const nombreNormalizado = slug.charAt(0).toUpperCase() + slug.slice(1);
+          const res = await supabase
+            .from("paginas_categorias")
+            .select("*")
+            .ilike("titulo", nombreNormalizado)
+            .maybeSingle();
+          data = res.data;
+        }
+
+        if (data) {
+          setPagina(data);
+        } else {
+          setPagina(fallbackPaginas[slug] || {
+            id: 99,
+            slug: slug,
+            etiqueta: `Colección ${slug}`,
+            titulo: slug.charAt(0).toUpperCase() + slug.slice(1),
+            subtitulo: "para enamorarte.",
+            descripcion: "Descubre productos únicos y especiales pensados para ti.",
+            imagen_principal: null,
+            color_principal: "#ff1493",
+            color_secundario: "#00d9d9",
+            banner_final_titulo: "Detalles que hacen la diferencia.",
+            banner_final_descripcion: "Sigue explorando Natt Store y encuentra tus favoritos.",
+            banner_final_texto_boton: "Explorar tienda",
+            banner_final_enlace: "/tienda",
+            activa: true,
+          });
+        }
+      } catch (err) {
+        setPagina(fallbackPaginas[slug] || null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    cargarPaginaSupabase();
+  }, [slug]);
 
   return { pagina, loading };
 }

@@ -173,7 +173,6 @@ export default function NuevoProductoPage() {
 
   return (
     <div className="relative space-y-5">
-      {/* ENCABEZADO */}
       <div className="relative overflow-hidden rounded-[30px] border border-white/60 bg-[#f7eee7] px-7 py-7 shadow-[0_20px_55px_rgba(105,55,65,0.12)] sm:px-9 sm:py-8">
         <div className="pointer-events-none absolute -left-20 top-0 h-56 w-56 rounded-full bg-[#ff1493]/12 blur-3xl" />
         <div className="pointer-events-none absolute -right-20 bottom-0 h-56 w-56 rounded-full bg-[#00d9d9]/12 blur-3xl" />
@@ -207,7 +206,6 @@ export default function NuevoProductoPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* INFORMACIÓN BÁSICA */}
         <Card title="Información básica">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nombre del producto">
@@ -221,6 +219,7 @@ export default function NuevoProductoPage() {
               />
             </Field>
 
+            {/* SECCIÓN INCLUYENDO ACCESORIOS Y MASCOTAS */}
             <Field label="Sección">
               <select
                 name="section"
@@ -233,6 +232,7 @@ export default function NuevoProductoPage() {
                 <option value="Papelería">Papelería</option>
                 <option value="Temporada">Temporada</option>
                 <option value="Accesorios">Accesorios</option>
+                <option value="Mascotas">Mascotas</option>
               </select>
             </Field>
 
@@ -292,7 +292,6 @@ export default function NuevoProductoPage() {
           </div>
         </Card>
 
-        {/* IMAGEN MEJORADA Y NÍTIDA */}
         <Card title="Imagen del producto">
           <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-[#24191f]/10 bg-[#f9f4f0] shadow-inner">
@@ -349,7 +348,6 @@ export default function NuevoProductoPage() {
           </div>
         </Card>
 
-        {/* PRECIO Y STOCK */}
         <Card title="Precio, costo y stock">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Precio de venta (COP)">
@@ -424,7 +422,6 @@ export default function NuevoProductoPage() {
           )}
         </Card>
 
-        {/* OPCIONES */}
         <Card title="Opciones">
           <div className="space-y-3">
             <Toggle

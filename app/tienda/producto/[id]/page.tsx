@@ -217,7 +217,7 @@ export default function ProductDetail({
       const fileName = `review-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("productos") // Usamos el mismo bucket de productos
+        .from("productos")
         .upload(fileName, reviewPhotoFile);
 
       if (!uploadError) {
@@ -260,6 +260,7 @@ export default function ProductDetail({
   const handleAddToCart = () => {
     if (!product) return;
 
+    // Aquí solo llamamos a addToCart. La notificación bonita (Toast) aparece solita.
     addToCart(
       {
         id: product.id,
@@ -269,12 +270,6 @@ export default function ProductDetail({
         image: product.image,
       },
       quantity
-    );
-
-    alert(
-      `${quantity} ${
-        quantity === 1 ? "producto agregado" : "productos agregados"
-      } al carrito.`
     );
   };
 

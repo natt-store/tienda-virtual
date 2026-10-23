@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useBanners } from "@/lib/useBanners";
 import { useTarjetasCategorias } from "@/lib/useCategorias";
 
-/* Respaldo si Supabase aún carga */
+/* Respaldo completo y forzado con las 6 categorías incluyendo Mascotas y colores dinámicos */
 const fallbackCategories = [
   {
     id: 1,
@@ -43,6 +43,24 @@ const fallbackCategories = [
     imagen:
       "https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=600&q=85",
     color: "#ff2fa4",
+  },
+  {
+    id: 5,
+    nombre: "Accesorios",
+    subtitulo: "Estilo para ti",
+    enlace: "/tienda/accesorios",
+    imagen:
+      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=85",
+    color: "#ff8400",
+  },
+  {
+    id: 6,
+    nombre: "Mascotas",
+    subtitulo: "Para tus peluditos",
+    enlace: "/tienda/mascotas",
+    imagen:
+      "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=600&q=85",
+    color: "#ff1493",
   },
 ];
 
@@ -186,7 +204,8 @@ export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const slides = banners.length > 0 ? banners : [fallbackSlide];
-  const categories = tarjetas.length > 0 ? tarjetas : fallbackCategories;
+  
+  const categories = tarjetas.length >= 6 ? tarjetas : fallbackCategories;
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -432,45 +451,47 @@ export default function Hero() {
           )}
         </div>
 
-        {/* CATEGORÍAS VISUALES — ahora vienen de Supabase */}
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              href={category.enlace}
-              className="group relative block h-[135px] overflow-hidden rounded-[20px] border border-white/80 bg-white shadow-[0_8px_25px_rgba(50,30,40,0.10)]"
-            >
-              <img
-                src={category.imagen || ""}
-                alt={category.nombre}
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+        {/* CATEGORÍAS VISUALES — Llave única corregida aquí con `${category.id}-${index}` */}
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {categories.map((category, index) => {
+            const sectionColor = category.color || "#ff1493";
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
-
-              <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
-                <span className="block text-sm font-bold text-white">
-                  {category.nombre}
-                </span>
-
-                <span className="mt-0.5 block text-[9px] font-medium text-white/85">
-                  {category.subtitulo}
-                </span>
-              </div>
-
-              <span
-                className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-white shadow-lg transition-transform duration-300 group-hover:scale-110"
-                style={{
-                  background: category.color || "#ff1493",
-                  boxShadow: `0 0 12px color-mix(in srgb, ${
-                    category.color || "#ff1493"
-                  } 45%, transparent)`,
-                }}
+            return (
+              <Link
+                key={`${category.id}-${index}`}
+                href={category.enlace}
+                className="group relative block h-[135px] overflow-hidden rounded-[20px] border border-white/80 bg-white shadow-[0_8px_25px_rgba(50,30,40,0.10)]"
               >
-                <ArrowIcon />
-              </span>
-            </Link>
-          ))}
+                <img
+                  src={category.imagen || ""}
+                  alt={category.nombre}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+
+                <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
+                  <span className="block text-sm font-bold text-white">
+                    {category.nombre}
+                  </span>
+
+                  <span className="mt-0.5 block text-[9px] font-medium text-white/85">
+                    {category.subtitulo}
+                  </span>
+                </div>
+
+                <span
+                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-white shadow-lg transition-transform duration-300 group-hover:scale-110"
+                  style={{
+                    backgroundColor: sectionColor,
+                    boxShadow: `0 0 12px ${sectionColor}66`,
+                  }}
+                >
+                  <ArrowIcon />
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>
