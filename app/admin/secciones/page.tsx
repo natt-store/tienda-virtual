@@ -91,24 +91,22 @@ type TarjetaCategoria = {
   activa: boolean;
 };
 
-/* Respaldo completo con las 6 secciones oficiales incluyendo Accesorios y Mascotas */
+/* Respaldo limpio sin Accesorios */
 const seccionesFallback: Seccion[] = [
   { id: 1, nombre: "Maquillaje", slug: "maquillaje", descripcion: null, imagen: null, color: "#ff1493", orden: 1, activa: true },
   { id: 2, nombre: "Hogar", slug: "hogar", descripcion: null, imagen: null, color: "#00d9d9", orden: 2, activa: true },
   { id: 3, nombre: "Papelería", slug: "papeleria-kawaii", descripcion: null, imagen: null, color: "#a83cff", orden: 3, activa: true },
   { id: 4, nombre: "Temporada", slug: "temporada", descripcion: null, imagen: null, color: "#ff8400", orden: 4, activa: true },
-  { id: 5, nombre: "Accesorios", slug: "accesorios", descripcion: null, imagen: null, color: "#00d9d9", orden: 5, activa: true },
-  { id: 6, nombre: "Mascotas", slug: "mascotas", descripcion: null, imagen: null, color: "#ff1493", orden: 6, activa: true },
+  { id: 6, nombre: "Mascotas", slug: "mascotas", descripcion: null, imagen: null, color: "#ff1493", orden: 5, activa: true },
 ];
 
-/* Respaldo completo para las tarjetas de la tienda/home */
+/* Respaldo limpio sin Accesorios */
 const tarjetasFallback: TarjetaCategoria[] = [
   { id: 1, nombre: "Maquillaje", subtitulo: "Belleza", enlace: "/tienda/maquillaje", imagen: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=90", color: "#ff1493", orden: 1, activa: true },
   { id: 2, nombre: "Hogar", subtitulo: "Espacios", enlace: "/tienda/hogar", imagen: "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=900&q=90", color: "#00d9d9", orden: 2, activa: true },
   { id: 3, nombre: "Papelería", subtitulo: "Crear", enlace: "/tienda/papeleria-kawaii", imagen: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=90", color: "#a83cff", orden: 3, activa: true },
   { id: 4, nombre: "Temporada", subtitulo: "Especial", enlace: "/tienda/temporada", imagen: "https://images.unsplash.com/photo-1509587584298-0f3b3a3a1799?auto=format&fit=crop&w=900&q=90", color: "#ff8400", orden: 4, activa: true },
-  { id: 5, nombre: "Accesorios", subtitulo: "Estilo", enlace: "/tienda/accesorios", imagen: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=900&q=90", color: "#00d9d9", orden: 5, activa: true },
-  { id: 6, nombre: "Mascotas", subtitulo: "Peluditos", enlace: "/tienda/mascotas", imagen: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=90", color: "#ff1493", orden: 6, activa: true },
+  { id: 6, nombre: "Mascotas", subtitulo: "Peluditos", enlace: "/tienda/mascotas", imagen: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=90", color: "#ff1493", orden: 5, activa: true },
 ];
 
 /* =========================================================
@@ -145,9 +143,9 @@ export default function AdminSeccionesPage() {
 
     const dbSecs = secs && secs.length > 0 ? secs : seccionesFallback;
     const finalSecs = seccionesFallback.map((fallbackSec) => {
-      const found = dbSecs.find((ds: any) => ds.slug === fallbackSec.slug || ds.nombre === fallbackSec.nombre);
+      const found = dbSecs.find((ds: any) => (ds.slug === fallbackSec.slug || ds.nombre === fallbackSec.nombre) && ds.nombre?.toLowerCase() !== "accesorios");
       return found || fallbackSec;
-    });
+    }).filter((s) => s.nombre?.toLowerCase() !== "accesorios");
 
     setSecciones(finalSecs);
     if (finalSecs.length > 0 && !activeSeccion) {
@@ -197,7 +195,13 @@ export default function AdminSeccionesPage() {
       .select("*")
       .order("orden", { ascending: true });
 
-    const finalTarjetas = tjs && tjs.length > 0 ? tjs : tarjetasFallback;
+    const dbTarjetas = tjs && tjs.length > 0 ? tjs : tarjetasFallback;
+    const finalTarjetas = dbTarjetas.filter(
+      (t: any) =>
+        t.nombre?.toLowerCase() !== "accesorios" &&
+        !t.enlace?.includes("accesorios")
+    );
+
     setTarjetas(finalTarjetas);
     setLoading(false);
   };
@@ -501,7 +505,6 @@ export default function AdminSeccionesPage() {
             <b>¿Qué editas aquí?</b> Los textos y la <b>imagen circular</b> del hero de cada sección:{" "}
             <span className="font-bold">/tienda/maquillaje</span>,{" "}
             <span className="font-bold">/tienda/hogar</span>,{" "}
-            <span className="font-bold">/tienda/accesorios</span>,{" "}
             <span className="font-bold">/tienda/mascotas</span>, etc.
           </div>
 
@@ -831,12 +834,12 @@ export default function AdminSeccionesPage() {
         </>
       )}
 
-      {/* ============ TAB 2: PORTADA (CON MINIATURAS CORREGIDAS) ============ */}
+      {/* ============ TAB 2: PORTADA ============ */}
       {tab === "portada" && (
         <>
           <div className="rounded-2xl border border-[#a83cff]/25 bg-[#a83cff]/5 px-5 py-4 text-xs leading-5 text-[#a83cff]">
             <b>¿Qué editas aquí?</b> Las tarjetas de categoría que aparecen en{" "}
-            <span className="font-bold">/tienda</span> y en el <span className="font-bold">Home</span> (incluyendo Accesorios y Mascotas).
+            <span className="font-bold">/tienda</span> y en el <span className="font-bold">Home</span>.
           </div>
 
           <div className="relative overflow-hidden rounded-[26px] border border-white/60 bg-white/80 p-6 backdrop-blur-md">
@@ -887,7 +890,6 @@ export default function AdminSeccionesPage() {
                     key={t.id}
                     className="overflow-hidden rounded-2xl border border-[#24191f]/6 bg-[#f9f4f0]"
                   >
-                    {/* Contenedor de la miniatura corregido con object-cover y manejo seguro */}
                     <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#efe4da]">
                       {t.imagen ? (
                         <img
@@ -961,7 +963,7 @@ export default function AdminSeccionesPage() {
                 onChange={(e) =>
                   setEditingTarjeta({ ...editingTarjeta, nombre: e.target.value })
                 }
-                placeholder="Ej: Accesorios o Mascotas"
+                placeholder="Ej: Mascotas"
                 className={inputClass}
               />
             </Field>
@@ -975,7 +977,7 @@ export default function AdminSeccionesPage() {
                     subtitulo: e.target.value,
                   })
                 }
-                placeholder="Ej: Estilo o Peluditos"
+                placeholder="Ej: Peluditos"
                 className={inputClass}
               />
             </Field>

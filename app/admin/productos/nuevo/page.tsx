@@ -219,7 +219,7 @@ export default function NuevoProductoPage() {
               />
             </Field>
 
-            {/* SECCIÓN INCLUYENDO ACCESORIOS Y MASCOTAS */}
+            {/* SECCIÓN SIN ACCESORIOS */}
             <Field label="Sección">
               <select
                 name="section"
@@ -231,7 +231,6 @@ export default function NuevoProductoPage() {
                 <option value="Hogar">Hogar</option>
                 <option value="Papelería">Papelería</option>
                 <option value="Temporada">Temporada</option>
-                <option value="Accesorios">Accesorios</option>
                 <option value="Mascotas">Mascotas</option>
               </select>
             </Field>

@@ -28,14 +28,14 @@ function SparkleIcon() {
 }
 
 export default function StorePage() {
-  // Traemos las tarjetas desde Supabase en tiempo real
   const { tarjetas, loading } = useTarjetasCategorias();
 
-  // Filtramos para apagar/ocultar la categoría de accesorios completamente
+  // Filtro estricto antibloqueo para que los accesorios nunca se rendericen aquí
   const filteredTarjetas = tarjetas.filter(
     (col) =>
       col.nombre?.toLowerCase() !== "accesorios" &&
-      col.subtitulo?.toLowerCase() !== "accesorios"
+      col.subtitulo?.toLowerCase() !== "accesorios" &&
+      !col.enlace?.includes("accesorios")
   );
 
   return (
@@ -94,7 +94,7 @@ export default function StorePage() {
         </div>
       </section>
 
-      {/* COLECCIONES — Sin Accesorios */}
+      {/* COLECCIONES */}
       <section
         id="colecciones"
         className="mx-auto max-w-7xl scroll-mt-8 px-5 pb-24 pt-10 sm:px-6 lg:px-8"

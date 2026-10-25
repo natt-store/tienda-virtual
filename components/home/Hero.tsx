@@ -58,7 +58,7 @@ const fallbackCategories = [
 const fallbackSlide = {
   titulo: "Tu mundo",
   subtitulo: "más bonito",
-  descripcion: "Belleza, hogar, papelería y temporada para un solo lugar.",
+  descripcion: "Belleza, hogar, papelería y temporada en un solo lugar.",
   imagen:
     "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1500&q=90",
   texto_boton: "Explorar ahora",
@@ -199,7 +199,9 @@ export default function Hero() {
   // Filtramos las tarjetas para asegurarnos de que la sección de Accesorios quede totalmente excluida
   const rawCategories = tarjetas.length > 0 ? tarjetas : fallbackCategories;
   const categories = rawCategories.filter(
-    (cat) => cat.nombre?.toLowerCase() !== "accesorios"
+    (cat) =>
+      cat.nombre?.toLowerCase() !== "accesorios" &&
+      !cat.enlace?.includes("accesorios")
   );
 
   useEffect(() => {
@@ -409,22 +411,6 @@ export default function Hero() {
                 </span>
               </div>
             </div>
-
-            <div
-              className="pointer-events-none absolute bottom-[-15px] left-[34%] z-30 h-[85px] w-[60%] rounded-[50%] border-t-[2px] border-[var(--natt-pink)]/70"
-              style={{
-                boxShadow: "0 -3px 12px rgba(255,20,147,0.40)",
-                transform: "rotate(-3deg)",
-              }}
-            />
-
-            <div
-              className="pointer-events-none absolute bottom-[-8px] left-[42%] z-30 h-[65px] w-[55%] rounded-[50%] border-t-[2px] border-[var(--natt-aqua)]/60"
-              style={{
-                boxShadow: "0 -3px 12px rgba(0,217,217,0.32)",
-                transform: "rotate(4deg)",
-              }}
-            />
           </div>
 
           {slides.length > 1 && (

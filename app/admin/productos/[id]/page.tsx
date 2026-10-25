@@ -350,7 +350,7 @@ export default function EditarProductoPage() {
               />
             </Field>
 
-            {/* SECCIÓN ACTUALIZADA CON LAS 6 SECCIONES OFICIALES */}
+            {/* SECCIÓN ACTUALIZADA SIN ACCESORIOS */}
             <Field label="Sección">
               <select
                 name="section"
@@ -362,7 +362,6 @@ export default function EditarProductoPage() {
                 <option value="Hogar">Hogar</option>
                 <option value="Papelería">Papelería</option>
                 <option value="Temporada">Temporada</option>
-                <option value="Accesorios">Accesorios</option>
                 <option value="Mascotas">Mascotas</option>
               </select>
             </Field>
