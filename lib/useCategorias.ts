@@ -14,6 +14,7 @@ export type TarjetaCategoria = {
   activa: boolean;
 };
 
+// Respaldo sin rastro de accesorios
 const fallbackTarjetas: TarjetaCategoria[] = [
   {
     id: 1,
@@ -56,16 +57,6 @@ const fallbackTarjetas: TarjetaCategoria[] = [
     activa: true,
   },
   {
-    id: 5,
-    nombre: "Accesorios",
-    subtitulo: "Estilo",
-    imagen: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=900&q=90",
-    enlace: "/tienda/accesorios",
-    color: "#00d9d9",
-    orden: 5,
-    activa: true,
-  },
-  {
     id: 6,
     nombre: "Mascotas",
     subtitulo: "Peluditos",
@@ -90,11 +81,19 @@ export function useTarjetasCategorias() {
           .order("orden", { ascending: true });
 
         if (data && data.length > 0) {
-          const nombresEnDb = data.map((t: any) => t.nombre.toLowerCase());
+          // Filtramos estrictamente cualquier tarjeta que se llame o enlace a accesorios
+          const datosFiltrados = data.filter(
+            (t: any) =>
+              t.nombre?.toLowerCase() !== "accesorios" &&
+              !t.enlace?.includes("accesorios")
+          );
+
+          const nombresEnDb = datosFiltrados.map((t: any) => t.nombre.toLowerCase());
           const faltantes = fallbackTarjetas.filter(
             (fb) => !nombresEnDb.includes(fb.nombre.toLowerCase())
           );
-          setTarjetas([...data, ...faltantes].sort((a, b) => a.orden - b.orden));
+
+          setTarjetas([...datosFiltrados, ...faltantes].sort((a, b) => a.orden - b.orden));
         } else {
           setTarjetas(fallbackTarjetas);
         }
@@ -128,23 +127,8 @@ export type PaginaCategoria = {
   activa: boolean;
 };
 
+// Respaldo sin accesorios
 const fallbackPaginas: Record<string, PaginaCategoria> = {
-  accesorios: {
-    id: 5,
-    slug: "accesorios",
-    etiqueta: "Colección Accesorios",
-    titulo: "Accesorios",
-    subtitulo: "para brillar.",
-    descripcion: "Descubre complementos únicos, delicados y llenos de estilo para darle el toque final a cada uno de tus días.",
-    imagen_principal: null,
-    color_principal: "#00d9d9",
-    color_secundario: "#a83cff",
-    banner_final_titulo: "Detalles que hacen la diferencia.",
-    banner_final_descripcion: "Sigue explorando Natt Store y encuentra esos productos que simplemente se sienten hechos para ti.",
-    banner_final_texto_boton: "Explorar tienda",
-    banner_final_enlace: "/tienda",
-    activa: true,
-  },
   mascotas: {
     id: 6,
     slug: "mascotas",
@@ -170,7 +154,7 @@ export function usePaginaCategoria(slug: string) {
   useEffect(() => {
     async function cargarPaginaSupabase() {
       try {
-        if (!slug) return;
+        if (!slug || slug.toLowerCase() === "accesorios") return;
 
         let { data, error } = await supabase
           .from("paginas_categorias")
