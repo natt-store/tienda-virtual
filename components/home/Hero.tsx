@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useBanners } from "@/lib/useBanners";
 import { useTarjetasCategorias } from "@/lib/useCategorias";
 
-/* Respaldo completo y forzado con las 6 categorías incluyendo Mascotas y colores dinámicos */
+/* Respaldo completo y forzado sin Accesorios */
 const fallbackCategories = [
   {
     id: 1,
@@ -43,15 +43,6 @@ const fallbackCategories = [
     imagen:
       "https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=600&q=85",
     color: "#ff2fa4",
-  },
-  {
-    id: 5,
-    nombre: "Accesorios",
-    subtitulo: "Estilo para ti",
-    enlace: "/tienda/accesorios",
-    imagen:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=85",
-    color: "#ff8400",
   },
   {
     id: 6,
@@ -205,7 +196,11 @@ export default function Hero() {
 
   const slides = banners.length > 0 ? banners : [fallbackSlide];
   
-  const categories = tarjetas.length >= 6 ? tarjetas : fallbackCategories;
+  // Filtramos las tarjetas para asegurarnos de que la sección de Accesorios quede totalmente excluida
+  const rawCategories = tarjetas.length > 0 ? tarjetas : fallbackCategories;
+  const categories = rawCategories.filter(
+    (cat) => cat.nombre?.toLowerCase() !== "accesorios"
+  );
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -451,8 +446,8 @@ export default function Hero() {
           )}
         </div>
 
-        {/* CATEGORÍAS VISUALES — Llave única corregida aquí con `${category.id}-${index}` */}
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {/* CATEGORÍAS VISUALES — Sin Accesorios */}
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {categories.map((category, index) => {
             const sectionColor = category.color || "#ff1493";
 

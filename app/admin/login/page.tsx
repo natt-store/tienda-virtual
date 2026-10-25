@@ -24,6 +24,9 @@ export default function AdminLoginPage() {
       return;
     }
 
+    // Pequeña pausa para asegurar que Supabase guarde la sesión antes de entrar
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
     window.location.href = "/admin";
   };
 

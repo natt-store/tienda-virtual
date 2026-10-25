@@ -135,7 +135,7 @@ export default function ProductDetail({
     fetchReviews();
   }, [productId]);
 
-  // Cargar productos relacionados
+  // Cargar productos relacionados (excluyendo accesorios por seguridad general)
   useEffect(() => {
     if (!product) return;
 
@@ -149,6 +149,7 @@ export default function ProductDetail({
         .eq("section", product!.section)
         .eq("category", product!.category)
         .neq("id", product!.id)
+        .neq("section", "Accesorios")
         .limit(3);
 
       if (!mounted) return;
@@ -211,7 +212,6 @@ export default function ProductDetail({
     setSubmittingReview(true);
     let photoUrl: string | null = null;
 
-    // Si subió foto, la guardamos en el Storage de Supabase
     if (reviewPhotoFile) {
       const ext = reviewPhotoFile.name.split(".").pop();
       const fileName = `review-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -228,7 +228,6 @@ export default function ProductDetail({
       }
     }
 
-    // Insertar reseña en la base de datos
     const { data: newReview, error: insertError } = await supabase
       .from("reseñas")
       .insert({
@@ -260,7 +259,13 @@ export default function ProductDetail({
   const handleAddToCart = () => {
     if (!product) return;
 
-    // Aquí solo llamamos a addToCart. La notificación bonita (Toast) aparece solita.
+    // Validación estricta de stock antes de agregar
+    const stockDisponible = product.stock ?? 0;
+    if (stockDisponible <= 0) {
+      alert("Lo sentimos, este producto se encuentra agotado.");
+      return;
+    }
+
     addToCart(
       {
         id: product.id,
@@ -328,6 +333,10 @@ export default function ProductDetail({
           : sectionLower === "temporada"
             ? "/tienda/temporada"
             : "/tienda";
+
+  // Verificación del stock actual
+  const stock = product.stock ?? 0;
+  const isAgotado = stock <= 0;
 
   return (
     <main className="min-h-screen bg-[var(--natt-bg)] text-[var(--natt-dark)]">
@@ -419,14 +428,26 @@ export default function ProductDetail({
                 </span>
               </div>
 
-              {/* Precio */}
-              <div className="mt-4 flex items-end gap-2 sm:mt-5">
-                <span className="text-xl font-bold tracking-tight text-[var(--natt-dark)] sm:text-2xl">
-                  {formattedPrice}
-                </span>
-                <span className="mb-0.5 text-[8px] uppercase tracking-[0.1em] text-[var(--natt-dark)]/35 sm:text-[9px]">
-                  Precio final
-                </span>
+              {/* Precio y Estado de Stock */}
+              <div className="mt-4 flex items-end justify-between gap-2 sm:mt-5">
+                <div className="flex items-end gap-2">
+                  <span className="text-xl font-bold tracking-tight text-[var(--natt-dark)] sm:text-2xl">
+                    {formattedPrice}
+                  </span>
+                  <span className="mb-0.5 text-[8px] uppercase tracking-[0.1em] text-[var(--natt-dark)]/35 sm:text-[9px]">
+                    Precio final
+                  </span>
+                </div>
+
+                {isAgotado ? (
+                  <span className="rounded-full bg-red-100 px-3 py-1 text-[10px] font-bold text-red-600">
+                    Agotado
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold text-emerald-600">
+                    {stock} disponibles en stock
+                  </span>
+                )}
               </div>
 
               <div className="mt-4 h-px w-full bg-gradient-to-r from-[var(--natt-pink)]/30 via-[var(--natt-dark)]/8 to-transparent" />
@@ -437,7 +458,7 @@ export default function ProductDetail({
                 </p>
               )}
 
-              {/* Cantidad y Carrito */}
+              {/* Cantidad y Carrito con bloqueo si stock es 0 */}
               <div className="mt-5">
                 <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--natt-dark)]/45">
                   Cantidad
@@ -447,8 +468,9 @@ export default function ProductDetail({
                   <div className="flex h-10 items-center overflow-hidden rounded-full border border-[var(--natt-dark)]/10 bg-white/70 backdrop-blur-sm">
                     <button
                       type="button"
+                      disabled={isAgotado}
                       onClick={() => setQuantity((c) => Math.max(1, c - 1))}
-                      className="flex h-10 w-9 items-center justify-center text-base text-[var(--natt-dark)]/55 hover:bg-[var(--natt-pink)]/10 hover:text-[var(--natt-pink)]"
+                      className="flex h-10 w-9 items-center justify-center text-base text-[var(--natt-dark)]/55 hover:bg-[var(--natt-pink)]/10 hover:text-[var(--natt-pink)] disabled:opacity-50"
                     >
                       −
                     </button>
@@ -457,8 +479,9 @@ export default function ProductDetail({
                     </span>
                     <button
                       type="button"
+                      disabled={isAgotado}
                       onClick={() => setQuantity((c) => c + 1)}
-                      className="flex h-10 w-9 items-center justify-center text-base text-[var(--natt-dark)]/55 hover:bg-[var(--natt-aqua)]/10 hover:text-[var(--natt-aqua)]"
+                      className="flex h-10 w-9 items-center justify-center text-base text-[var(--natt-dark)]/55 hover:bg-[var(--natt-aqua)]/10 hover:text-[var(--natt-aqua)] disabled:opacity-50"
                     >
                       +
                     </button>
@@ -467,10 +490,17 @@ export default function ProductDetail({
                   <button
                     type="button"
                     onClick={handleAddToCart}
-                    className="group relative flex h-10 flex-1 items-center justify-center gap-2 overflow-hidden rounded-full bg-[var(--natt-dark)] px-5 text-[10px] font-bold text-white transition-all hover:bg-[var(--natt-pink)] sm:text-xs"
+                    disabled={isAgotado}
+                    className={`group relative flex h-10 flex-1 items-center justify-center gap-2 overflow-hidden rounded-full px-5 text-[10px] font-bold text-white transition-all sm:text-xs ${
+                      isAgotado
+                        ? "cursor-not-allowed bg-gray-400"
+                        : "bg-[var(--natt-dark)] hover:bg-[var(--natt-pink)]"
+                    }`}
                   >
-                    <span className="relative z-10">Agregar al carrito</span>
-                    <ArrowIcon />
+                    <span className="relative z-10">
+                      {isAgotado ? "Producto agotado" : "Agregar al carrito"}
+                    </span>
+                    {!isAgotado && <ArrowIcon />}
                   </button>
                 </div>
               </div>

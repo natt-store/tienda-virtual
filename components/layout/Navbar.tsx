@@ -258,9 +258,11 @@ export default function Navbar() {
     return products
       .filter(
         (product) =>
-          product.name.toLowerCase().includes(q) ||
-          product.category.toLowerCase().includes(q) ||
-          product.section.toLowerCase().includes(q)
+          product.section?.toLowerCase() !== "accesorios" &&
+          product.category?.toLowerCase() !== "accesorios" &&
+          (product.name.toLowerCase().includes(q) ||
+            product.category.toLowerCase().includes(q) ||
+            product.section.toLowerCase().includes(q))
       )
       .slice(0, 8);
   }, [query, products]);
@@ -430,7 +432,7 @@ export default function Navbar() {
                 <span className="text-[var(--natt-pink)]">01</span>
               </Link>
 
-              {/* Tienda con Accesorios integrado */}
+              {/* Tienda con Accesorios oculto temporalmente */}
               <div className="border-b border-[var(--natt-black)]/8">
                 <button
                   type="button"
@@ -491,11 +493,11 @@ export default function Navbar() {
                       </Link>
 
                       <Link
-                        href="/tienda/accesorios"
+                        href="/tienda/mascotas"
                         onClick={closeMenu}
-                        className="rounded-2xl bg-[var(--natt-bg)] px-4 py-3 text-xs font-semibold text-[var(--natt-black)] transition-all hover:bg-[var(--natt-aqua)]/10 hover:text-[var(--natt-aqua)]"
+                        className="rounded-2xl bg-[var(--natt-bg)] px-4 py-3 text-xs font-semibold text-[var(--natt-black)] transition-all hover:bg-[var(--natt-pink)]/10 hover:text-[var(--natt-pink)]"
                       >
-                        Accesorios
+                        Mascotas
                       </Link>
                     </div>
                   </div>
@@ -581,7 +583,7 @@ export default function Navbar() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar maquillaje, hogar, accesorios..."
+                placeholder="Buscar maquillaje, hogar..."
                 className="flex-1 bg-transparent text-base font-medium text-[var(--natt-black)] placeholder:text-[var(--natt-gray)]/60 focus:outline-none"
               />
 
@@ -603,7 +605,7 @@ export default function Navbar() {
                     ¿Qué estás buscando?
                   </p>
                   <p className="mt-1 text-xs text-[var(--natt-gray)]">
-                    Prueba con "labial", "hogar" o "accesorios".
+                    Prueba con "labial", "hogar" o papelería.
                   </p>
                 </div>
               )}

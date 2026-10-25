@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAdmin } from "@/lib/useAdmin";
 
@@ -106,7 +107,9 @@ type Stats = {
 };
 
 export default function AdminDashboardPage() {
-  const { admin } = useAdmin();
+  const router = useRouter();
+  const { admin, loading: adminLoading } = useAdmin();
+  
   const [stats, setStats] = useState<Stats>({
     totalProductos: 0,
     totalPedidos: 0,
@@ -121,19 +124,32 @@ export default function AdminDashboardPage() {
   });
   const [loading, setLoading] = useState(true);
 
+  // Protección segura usando useAdmin: si termina de cargar y no hay admin, bota al login
   useEffect(() => {
+    if (!adminLoading && !admin) {
+      router.replace("/admin/login");
+    }
+  }, [admin, adminLoading, router]);
+
+  useEffect(() => {
+    if (!admin) return;
+
     async function fetchStats() {
       setLoading(true);
 
       const { count: totalProductos } = await supabase
         .from("productos")
         .select("*", { count: "exact", head: true })
-        .eq("active", true);
+        .eq("active", true)
+        .neq("section", "Accesorios")
+        .neq("category", "Accesorios");
 
       const { data: stockBajoData } = await supabase
         .from("productos")
-        .select("id, name, stock, stock_minimo")
+        .select("id, name, stock, stock_minimo, section, category")
         .eq("active", true)
+        .neq("section", "Accesorios")
+        .neq("category", "Accesorios")
         .order("stock", { ascending: true });
 
       const stockBajoLista = (stockBajoData || [])
@@ -210,7 +226,7 @@ export default function AdminDashboardPage() {
     }
 
     fetchStats();
-  }, []);
+  }, [admin]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("es-CO", {
@@ -231,6 +247,15 @@ export default function AdminDashboardPage() {
       return "";
     }
   };
+
+  // Si está cargando el estado del admin, mostramos la pantalla de carga para evitar parpadeos
+  if (adminLoading || !admin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--natt-bg)] text-xs font-bold text-[#67545d]">
+        Verificando acceso seguro... ✨
+      </div>
+    );
+  }
 
   return (
     <div className="relative space-y-5">

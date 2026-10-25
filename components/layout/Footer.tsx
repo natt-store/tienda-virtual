@@ -41,7 +41,6 @@ const storeLinks = [
     color: "purple",
   },
   { label: "Temporada", href: "/tienda/temporada", color: "pink" },
-  { label: "Accesorios", href: "/tienda/accesorios", color: "aqua" },
   { label: "Mascotas", href: "/tienda/mascotas", color: "pink" },
 ];
 

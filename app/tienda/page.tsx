@@ -28,8 +28,15 @@ function SparkleIcon() {
 }
 
 export default function StorePage() {
-  // Traemos las tarjetas directamente desde Supabase en tiempo real (con los colores que editaste en el admin)
+  // Traemos las tarjetas desde Supabase en tiempo real
   const { tarjetas, loading } = useTarjetasCategorias();
+
+  // Filtramos para apagar/ocultar la categoría de accesorios completamente
+  const filteredTarjetas = tarjetas.filter(
+    (col) =>
+      col.nombre?.toLowerCase() !== "accesorios" &&
+      col.subtitulo?.toLowerCase() !== "accesorios"
+  );
 
   return (
     <main className="min-h-screen overflow-hidden bg-[var(--natt-bg)] text-[var(--natt-black)]">
@@ -87,7 +94,7 @@ export default function StorePage() {
         </div>
       </section>
 
-      {/* COLECCIONES — Leyendo dinámicamente los colores desde Supabase */}
+      {/* COLECCIONES — Sin Accesorios */}
       <section
         id="colecciones"
         className="mx-auto max-w-7xl scroll-mt-8 px-5 pb-24 pt-10 sm:px-6 lg:px-8"
@@ -100,7 +107,7 @@ export default function StorePage() {
               </span>
               <span className="h-1.5 w-1.5 rounded-full bg-[#00d9d9]" />
               <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--natt-black)]/40">
-                {tarjetas.length} categorías
+                {filteredTarjetas.length} categorías
               </span>
             </div>
 
@@ -121,8 +128,7 @@ export default function StorePage() {
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {tarjetas.map((col, index) => {
-              // Aquí tomamos estrictamente el color que guardaste en Supabase desde el panel admin
+            {filteredTarjetas.map((col, index) => {
               const cardColor = col.color || "#ff1493";
 
               return (
@@ -141,7 +147,6 @@ export default function StorePage() {
 
                   <div className="absolute inset-0 bg-gradient-to-t from-[#241521]/90 via-[#241521]/15 to-transparent" />
 
-                  {/* Icono superior con el color exacto editado en el panel */}
                   <div
                     className="absolute top-5 left-5 z-10 flex h-11 w-11 items-center justify-center rounded-full text-white shadow-lg backdrop-blur-sm transition-transform duration-500 group-hover:rotate-12"
                     style={{
@@ -153,7 +158,6 @@ export default function StorePage() {
                   </div>
 
                   <div className="absolute bottom-6 left-6 right-6 z-10">
-                    {/* Subtítulo con el color exacto editado en el panel */}
                     <span
                       className="text-[9px] font-bold uppercase tracking-[0.25em]"
                       style={{ color: cardColor }}
