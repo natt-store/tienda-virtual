@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -47,28 +48,63 @@ function SearchIcon() {
 
 export default function MaquillajePage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [separadores, setSeparadores] = useState<any[]>([]);
 
   // Traer productos reales de Supabase en tiempo real para la sección Maquillaje
   const { products: allProducts, loading } = useProductsBySection("Maquillaje");
   const { pagina } = usePaginaCategoria("maquillaje");
+
+  // Cargar también los títulos y subtítulos (separadores) ordenados
+  useEffect(() => {
+    const cargarSeparadores = async () => {
+      const { data } = await supabase
+        .from("separadores_orden")
+        .select("*")
+        .eq("seccion", "Maquillaje")
+        .order("orden", { ascending: true });
+
+      if (data) {
+        setSeparadores(data);
+      }
+    };
+    cargarSeparadores();
+  }, []);
 
   const info = pagina ?? fallback;
 
   const colorPrincipal = info.color_principal || fallback.color_principal;
   const colorSecundario = info.color_secundario || fallback.color_secundario;
 
-  const filteredProducts = useMemo(() => {
+  // Unir productos y separadores respetando el orden global guardado
+  const elementosTienda = useMemo(() => {
+    const prodsConTipo = allProducts.map((p) => ({ ...p, tipo: "producto" as const }));
+    const sepsConTipo = separadores.map((s) => ({ ...s, tipo: "separador" as const }));
+
+    return [...prodsConTipo, ...sepsConTipo].sort(
+      (a, b) => (a.orden ?? 0) - (b.orden ?? 0)
+    );
+  }, [allProducts, separadores]);
+
+  const filteredElements = useMemo(() => {
     if (!searchTerm.trim()) {
-      return allProducts;
+      return elementosTienda;
     }
 
     const term = searchTerm.toLowerCase();
-    return allProducts.filter(
-      (product) =>
-        product.name.toLowerCase().includes(term) ||
-        product.category.toLowerCase().includes(term)
-    );
-  }, [searchTerm, allProducts]);
+    return elementosTienda.filter((item) => {
+      if (item.tipo === "separador") {
+        // Los títulos se muestran si coincide su texto o si hay búsqueda general
+        return (
+          item.titulo?.toLowerCase().includes(term) ||
+          item.subtitulo?.toLowerCase().includes(term)
+        );
+      }
+      return (
+        item.name.toLowerCase().includes(term) ||
+        item.category.toLowerCase().includes(term)
+      );
+    });
+  }, [searchTerm, elementosTienda]);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#eadfd5] text-[#24191f]">
@@ -226,7 +262,7 @@ export default function MaquillajePage() {
       </section>
 
       {/* =========================================================
-          PRODUCTOS
+          PRODUCTOS Y SEPARADORES ORDENADOS
       ========================================================= */}
       <section
         id="productos"
@@ -259,70 +295,100 @@ export default function MaquillajePage() {
           </div>
         ) : (
           <div className="relative mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-            {filteredProducts.map((product) => (
-              <article
-                key={product.id}
-                className="group overflow-hidden rounded-[24px] border border-white/70 bg-white/80 shadow-[0_12px_35px_rgba(70,40,50,0.09)] backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(70,40,50,0.15)]"
-              >
-                <Link href={`/tienda/producto/${product.id}`} className="block">
-                  <div className="relative aspect-[0.88] overflow-hidden bg-[#f4e9e2]">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-cover transition duration-500 group-hover:scale-105"
-                    />
-
-                    {product.badge && (
-                      <span
-                        className="absolute left-3 top-3 z-10 rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-wide shadow-sm backdrop-blur"
+            {filteredElements.map((item) => {
+              // --- RENDERIZADO DE TÍTULO / SUBTÍTULO SEPARADOR ---
+              if (item.tipo === "separador") {
+                return (
+                  <div
+                    key={`sep-${item.id}`}
+                    className="col-span-full py-6 px-2 my-2 border-b border-[#24191f]/10"
+                  >
+                    <h3 className="text-2xl font-black tracking-tight text-[#24191f] sm:text-3xl">
+                      {item.titulo}
+                    </h3>
+                    {item.subtitulo && (
+                      <p
+                        className="text-xs font-bold uppercase tracking-widest mt-1"
                         style={{ color: colorPrincipal }}
                       >
-                        {product.badge}
-                      </span>
+                        {item.subtitulo}
+                      </p>
                     )}
+                  </div>
+                );
+              }
 
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/30 to-transparent p-3 pt-10 opacity-0 transition group-hover:opacity-100">
-                      <span className="inline-flex rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-[#24191f]">
-                        Ver producto
-                      </span>
+              // --- RENDERIZADO DE TARJETA DE PRODUCTO ORIGINAL ---
+              const product = item;
+              return (
+                <article
+                  key={`prod-${product.id}`}
+                  className="group overflow-hidden rounded-[24px] border border-white/70 bg-white/80 shadow-[0_12px_35px_rgba(70,40,50,0.09)] backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(70,40,50,0.15)] flex flex-col justify-between"
+                >
+                  <div>
+                    <Link href={`/tienda/producto/${product.id}`} className="block">
+                      <div className="relative aspect-[0.88] overflow-hidden bg-[#f4e9e2]">
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          className="object-cover transition duration-500 group-hover:scale-105"
+                        />
+
+                        {product.badge && (
+                          <span
+                            className="absolute left-3 top-3 z-10 rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-wide shadow-sm backdrop-blur"
+                            style={{ color: colorPrincipal }}
+                          >
+                            {product.badge}
+                          </span>
+                        )}
+
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/30 to-transparent p-3 pt-10 opacity-0 transition group-hover:opacity-100">
+                          <span className="inline-flex rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-[#24191f]">
+                            Ver producto
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+
+                    <div className="p-3.5 sm:p-4">
+                      <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-[#00aeb0]">
+                        {product.category}
+                      </p>
+
+                      <Link href={`/tienda/producto/${product.id}`}>
+                        <h4 className="line-clamp-2 min-h-[38px] text-sm font-extrabold leading-5 text-[#24191f] transition hover:opacity-70 sm:text-[15px]">
+                          {product.name}
+                        </h4>
+                      </Link>
                     </div>
                   </div>
-                </Link>
 
-                <div className="p-3.5 sm:p-4">
-                  <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-[#00aeb0]">
-                    {product.category}
-                  </p>
+                  <div className="p-3.5 pt-0 sm:p-4 sm:pt-0">
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <p className="text-sm font-black text-[#24191f] sm:text-base">
+                        ${product.price.toLocaleString("es-CO")}
+                      </p>
 
-                  <Link href={`/tienda/producto/${product.id}`}>
-                    <h3 className="line-clamp-2 min-h-[38px] text-sm font-extrabold leading-5 text-[#24191f] transition hover:opacity-70 sm:text-[15px]">
-                      {product.name}
-                    </h3>
-                  </Link>
-
-                  <div className="mt-3 flex items-center justify-between gap-2">
-                    <p className="text-sm font-black text-[#24191f] sm:text-base">
-                      ${product.price.toLocaleString("es-CO")}
-                    </p>
-
-                    <Link
-                      href={`/tienda/producto/${product.id}`}
-                      aria-label={`Ver ${product.name}`}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-[0_7px_18px_rgba(0,0,0,0.15)] transition hover:scale-105"
-                      style={{ backgroundColor: colorPrincipal }}
-                    >
-                      →
-                    </Link>
+                      <Link
+                        href={`/tienda/producto/${product.id}`}
+                        aria-label={`Ver ${product.name}`}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-[0_7px_18px_rgba(0,0,0,0.15)] transition hover:scale-105"
+                        style={{ backgroundColor: colorPrincipal }}
+                      >
+                        →
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
 
-        {!loading && filteredProducts.length === 0 && (
+        {!loading && filteredElements.length === 0 && (
           <div className="mx-auto mt-8 max-w-xl rounded-[24px] border border-white/70 bg-white/70 p-10 text-center shadow-sm">
             <p className="text-lg font-bold">
               No encontramos productos con &quot;{searchTerm}&quot;.
