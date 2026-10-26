@@ -69,7 +69,6 @@ export default function NuevoProductoPage() {
     }
 
     loadCategorias();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.section]);
 
   const handleChange = (
@@ -219,7 +218,6 @@ export default function NuevoProductoPage() {
               />
             </Field>
 
-            {/* SECCIÓN SIN ACCESORIOS */}
             <Field label="Sección">
               <select
                 name="section"
@@ -227,7 +225,7 @@ export default function NuevoProductoPage() {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="Maquillaje">Maquillaje</option>
+                <option value="Maquillaje">Maquillaje (Belleza)</option>
                 <option value="Hogar">Hogar</option>
                 <option value="Papelería">Papelería</option>
                 <option value="Temporada">Temporada</option>
@@ -235,28 +233,15 @@ export default function NuevoProductoPage() {
               </select>
             </Field>
 
-            <Field label="Categoría">
-              {categorias.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[#ff1493]/30 bg-[#ff1493]/5 px-4 py-3 text-xs font-bold text-[#ff1493]">
-                  No hay categorías para esta sección.{" "}
-                  <Link href="/admin/secciones" className="underline">
-                    Crear una
-                  </Link>
-                </div>
-              ) : (
-                <select
-                  name="category"
-                  value={form.category}
-                  onChange={handleChange}
-                  className={inputClass}
-                >
-                  {categorias.map((c) => (
-                    <option key={c.id} value={c.nombre}>
-                      {c.nombre}
-                    </option>
-                  ))}
-                </select>
-              )}
+            <Field label="Categoría (Para filtrar en la tienda)">
+              <input
+                type="text"
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                placeholder="Ej: Maquillaje o Cuidado Personal"
+                className={inputClass}
+              />
             </Field>
 
             <Field label="Badge (opcional)">

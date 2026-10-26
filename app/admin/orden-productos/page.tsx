@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 
 type ElementoTienda = {
@@ -19,24 +19,23 @@ const seccionesDisponibles = ["Maquillaje", "Hogar", "Papelería", "Temporada", 
 
 export default function OrdenProductosPage() {
   const [seccionSeleccionada, setSeccionSeleccionada] = useState("Maquillaje");
+  const [subFiltroOrden, setSubFiltroOrden] = useState<"todos" | "maquillaje" | "cuidado">("todos");
+  
   const [elementos, setElementos] = useState<ElementoTienda[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [draggedUid, setDraggedUid] = useState<string | null>(null);
 
-  // Modal para crear elementos independientes
   const [showModal, setShowModal] = useState(false);
   const [tipoCreacion, setTipoCreacion] = useState<"titulo" | "subtitulo">("titulo");
   const [inputText, setInputText] = useState("");
 
-  // Casillas de verificación para selección múltiple
   const [destinosSeleccionados, setDestinosSeleccionados] = useState({
     maquillaje: true,
     cuidado: true,
   });
 
-  // Modal para ampliar imagen al hacer clic
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
 
   const cargarDatos = async (seccion: string) => {
@@ -94,7 +93,7 @@ export default function OrdenProductosPage() {
     });
 
     const combinado = [...listaProds, ...listaSeps].sort((a, b) => a.orden - b.orden);
-    const normalizado = combinado.map((item, idx) => ({ ...item, orden: idx }));
+    const normalizado = combinado.map((item: ElementoTienda, idx: number) => ({ ...item, orden: idx }));
 
     setElementos(normalizado);
     setLoading(false);
@@ -104,6 +103,25 @@ export default function OrdenProductosPage() {
     cargarDatos(seccionSeleccionada);
   }, [seccionSeleccionada]);
 
+  const elementosFiltradosAdmin = useMemo(() => {
+    if (seccionSeleccionada !== "Maquillaje" || subFiltroOrden === "todos") {
+      return elementos;
+    }
+
+    return elementos.filter((el: ElementoTienda) => {
+      if (el.tipo === "producto") {
+        const cat = el.category?.toLowerCase() || "";
+        if (subFiltroOrden === "maquillaje" && !cat.includes("maquillaje")) return false;
+        if (subFiltroOrden === "cuidado" && !cat.includes("cuidado") && !cat.includes("personal")) return false;
+      }
+      if (el.tipo === "titulo" || el.tipo === "subtitulo") {
+        const destino = el.categoria_destino || "maquillaje,cuidado";
+        if (!destino.includes(subFiltroOrden)) return false;
+      }
+      return true;
+    });
+  }, [elementos, seccionSeleccionada, subFiltroOrden]);
+
   const handleDragStart = (uid: string) => {
     setDraggedUid(uid);
   };
@@ -112,12 +130,12 @@ export default function OrdenProductosPage() {
     e.preventDefault();
     if (draggedUid === null || draggedUid === targetUid) return;
 
-    const draggedIndex = elementos.findIndex((el) => el.uid === draggedUid);
-    const targetIndex = elementos.findIndex((el) => el.uid === targetUid);
+    const draggedIndex = elementosFiltradosAdmin.findIndex((el) => el.uid === draggedUid);
+    const targetIndex = elementosFiltradosAdmin.findIndex((el) => el.uid === targetUid);
 
     if (draggedIndex < 0 || targetIndex < 0) return;
 
-    const nuevos = [...elementos];
+    const nuevos = [...elementosFiltradosAdmin];
     const [moved] = nuevos.splice(draggedIndex, 1);
     nuevos.splice(targetIndex, 0, moved);
 
@@ -126,19 +144,19 @@ export default function OrdenProductosPage() {
 
   const handleDragEnd = async () => {
     setDraggedUid(null);
-    const reindexados = elementos.map((el, idx) => ({ ...el, orden: idx }));
+    const reindexados = elementosFiltradosAdmin.map((el: ElementoTienda, idx: number) => ({ ...el, orden: idx }));
     await guardarOrdenCompleto(reindexados);
   };
 
   const moverConBoton = async (index: number, direccion: "arriba" | "abajo") => {
     const targetIndex = direccion === "arriba" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= elementos.length) return;
+    if (targetIndex < 0 || targetIndex >= elementosFiltradosAdmin.length) return;
 
-    const nuevos = [...elementos];
+    const nuevos = [...elementosFiltradosAdmin];
     const [moved] = nuevos.splice(index, 1);
     nuevos.splice(targetIndex, 0, moved);
 
-    const reindexados = nuevos.map((el, idx) => ({ ...el, orden: idx }));
+    const reindexados = nuevos.map((el: ElementoTienda, idx: number) => ({ ...el, orden: idx }));
     setElementos(reindexados);
     await guardarOrdenCompleto(reindexados);
   };
@@ -256,13 +274,16 @@ export default function OrdenProductosPage() {
         </div>
       </div>
 
-      {/* Selector de Secciones */}
+      {/* Selector de Secciones Principales */}
       <div className="flex flex-wrap gap-2 rounded-[24px] border border-white/60 bg-white/75 p-3 backdrop-blur-md">
         {seccionesDisponibles.map((sec) => (
           <button
             key={sec}
             type="button"
-            onClick={() => setSeccionSeleccionada(sec)}
+            onClick={() => {
+              setSeccionSeleccionada(sec);
+              setSubFiltroOrden("todos");
+            }}
             className={`rounded-full px-5 py-2.5 text-xs font-black transition ${
               seccionSeleccionada === sec
                 ? "bg-[#ff1493] text-white shadow-[0_8px_20px_rgba(255,20,147,0.28)]"
@@ -274,7 +295,41 @@ export default function OrdenProductosPage() {
         ))}
       </div>
 
-      {/* Modal para crear Título o Subtítulo con Checkboxes */}
+      {/* Si estamos en la sección Maquillaje, mostramos pestañas secundarias */}
+      {seccionSeleccionada === "Maquillaje" && (
+        <div className="flex items-center gap-2 bg-[#f9f4f0] p-2 rounded-2xl border border-[#24191f]/10 w-fit">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#67545d] px-2">Ordenar vista:</span>
+          <button
+            type="button"
+            onClick={() => setSubFiltroOrden("todos")}
+            className={`rounded-xl px-4 py-1.5 text-xs font-bold transition ${
+              subFiltroOrden === "todos" ? "bg-[#24191f] text-white" : "bg-white text-[#67545d]"
+            }`}
+          >
+            Todos juntos
+          </button>
+          <button
+            type="button"
+            onClick={() => setSubFiltroOrden("maquillaje")}
+            className={`rounded-xl px-4 py-1.5 text-xs font-bold transition ${
+              subFiltroOrden === "maquillaje" ? "bg-[#ff1493] text-white" : "bg-white text-[#67545d]"
+            }`}
+          >
+            Solo Maquillaje
+          </button>
+          <button
+            type="button"
+            onClick={() => setSubFiltroOrden("cuidado")}
+            className={`rounded-xl px-4 py-1.5 text-xs font-bold transition ${
+              subFiltroOrden === "cuidado" ? "bg-[#00d9d9] text-[#172124]" : "bg-white text-[#67545d]"
+            }`}
+          >
+            Solo Cuidado Personal
+          </button>
+        </div>
+      )}
+
+      {/* Modal para crear Título o Subtítulo */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl border border-white/60 space-y-4">
@@ -347,7 +402,7 @@ export default function OrdenProductosPage() {
         </div>
       )}
 
-      {/* Modal para ampliar imagen al hacer clic */}
+      {/* Modal para ampliar imagen */}
       {imagenAmpliada && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4"
@@ -370,7 +425,7 @@ export default function OrdenProductosPage() {
         </div>
       )}
 
-      {/* Contenedor principal con cuadrícula de 4 columnas y Drag & Drop unificado */}
+      {/* Contenedor principal */}
       <div className="relative overflow-hidden rounded-[26px] border border-white/60 bg-white/80 p-6 backdrop-blur-md">
         <div
           className="absolute left-0 right-0 top-0 h-[3px]"
@@ -379,10 +434,10 @@ export default function OrdenProductosPage() {
 
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-base font-black text-[#24191f]">
-            Sección: <span className="text-[#ff1493]">{seccionSeleccionada}</span>
+            Sección: <span className="text-[#ff1493]">{seccionSeleccionada}</span> {subFiltroOrden !== "todos" && `(${subFiltroOrden})`}
           </h2>
           <p className="text-xs text-[#67545d]">
-            Arrastra títulos, subtítulos o productos libremente por la cuadrícula.
+            Arrastra títulos, subtítulos o productos para ordenarlos.
           </p>
         </div>
 
@@ -390,16 +445,15 @@ export default function OrdenProductosPage() {
           <div className="py-20 text-center text-sm font-bold text-[#67545d]">
             Cargando tienda... ✨
           </div>
-        ) : elementos.length === 0 ? (
+        ) : elementosFiltradosAdmin.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[#24191f]/10 bg-[#f9f4f0] py-16 text-center">
             <p className="text-xs font-bold text-[#67545d]">
-              No hay elementos en esta sección todavía.
+              No hay elementos en esta vista todavía.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {elementos.map((el, index) => {
-              // --- RENDERIZADO DE TÍTULO INDEPENDIENTE ---
+            {elementosFiltradosAdmin.map((el: ElementoTienda, index: number) => {
               if (el.tipo === "titulo") {
                 return (
                   <div
@@ -452,7 +506,7 @@ export default function OrdenProductosPage() {
                           <button
                             type="button"
                             onClick={() => moverConBoton(index, "abajo")}
-                            disabled={index === elementos.length - 1}
+                            disabled={index === elementosFiltradosAdmin.length - 1}
                             className="rounded-lg px-3 py-1 text-xs font-bold text-gray-700 hover:bg-[#ff1493] hover:text-white disabled:opacity-30 transition"
                           >
                             ↓
@@ -464,7 +518,6 @@ export default function OrdenProductosPage() {
                 );
               }
 
-              // --- RENDERIZADO DE SUBTÍTULO INDEPENDIENTE ---
               if (el.tipo === "subtitulo") {
                 return (
                   <div
@@ -517,7 +570,7 @@ export default function OrdenProductosPage() {
                           <button
                             type="button"
                             onClick={() => moverConBoton(index, "abajo")}
-                            disabled={index === elementos.length - 1}
+                            disabled={index === elementosFiltradosAdmin.length - 1}
                             className="rounded-lg px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-[#ff1493] hover:text-white disabled:opacity-30 transition"
                           >
                             ↓
@@ -529,7 +582,6 @@ export default function OrdenProductosPage() {
                 );
               }
 
-              // --- TARJETA DE PRODUCTO ARRASTRABLE (Formato Cuadrícula de 4 columnas) ---
               return (
                 <div
                   key={el.uid}
@@ -542,12 +594,10 @@ export default function OrdenProductosPage() {
                   }`}
                 >
                   <div>
-                    {/* Número de orden badge */}
                     <div className="absolute left-6 top-6 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[#24191f]/80 text-[10px] font-black text-white shadow-sm backdrop-blur-md">
                       #{index + 1}
                     </div>
 
-                    {/* Imagen con zoom y clic para ampliar */}
                     <div
                       onClick={() => el.image && setImagenAmpliada(el.image)}
                       className="relative aspect-[4/4.6] w-full overflow-hidden rounded-[18px] bg-[#eee4dc] cursor-zoom-in group/img shadow-inner mb-3"
@@ -575,7 +625,6 @@ export default function OrdenProductosPage() {
                     </p>
                   </div>
 
-                  {/* Controles de movimiento abajo de la tarjeta */}
                   <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
                     <span className="text-[10px] font-bold text-gray-400">Mover:</span>
                     <div className="flex gap-1 bg-gray-50 p-1 rounded-xl border border-gray-200 shadow-sm">
@@ -590,7 +639,7 @@ export default function OrdenProductosPage() {
                       <button
                         type="button"
                         onClick={() => moverConBoton(index, "abajo")}
-                        disabled={index === elementos.length - 1}
+                        disabled={index === elementosFiltradosAdmin.length - 1}
                         className="rounded-lg px-2.5 py-1 text-xs font-bold text-gray-700 hover:bg-[#ff1493] hover:text-white disabled:opacity-30 transition"
                       >
                         ↓
