@@ -54,9 +54,6 @@ export default function EditarProductoPage() {
     recomendado: false,
   });
 
-  const [categorias, setCategorias] = useState<
-    { id: number; nombre: string; seccion: string }[]
-  >([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -64,7 +61,6 @@ export default function EditarProductoPage() {
   const [error, setError] = useState("");
 
   const isInitialLoaded = useRef(false);
-  const originalCategory = useRef("");
 
   useEffect(() => {
     async function loadProduct() {
@@ -82,8 +78,6 @@ export default function EditarProductoPage() {
         setLoading(false);
         return;
       }
-
-      originalCategory.current = data.category || "";
 
       setForm({
         name: data.name || "",
@@ -108,33 +102,6 @@ export default function EditarProductoPage() {
     loadProduct();
   }, [id]);
 
-  useEffect(() => {
-    async function loadCategorias() {
-      const { data } = await supabase
-        .from("categorias")
-        .select("id, nombre, seccion")
-        .eq("seccion", form.section)
-        .eq("activa", true)
-        .order("orden", { ascending: true });
-
-      const lista = data || [];
-      setCategorias(lista);
-
-      if (isInitialLoaded.current) {
-        const existeOriginal = lista.find((c) => c.nombre === originalCategory.current);
-        if (existeOriginal) {
-          setForm((f) => ({ ...f, category: originalCategory.current }));
-        } else if (lista.length > 0) {
-          setForm((f) => ({ ...f, category: lista[0].nombre }));
-        } else {
-          setForm((f) => ({ ...f, category: "" }));
-        }
-      }
-    }
-
-    loadCategorias();
-  }, [form.section]);
-
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -142,10 +109,6 @@ export default function EditarProductoPage() {
   ) => {
     const { name, value, type } = e.target as any;
     const checked = (e.target as HTMLInputElement).checked;
-
-    if (name === "section") {
-      isInitialLoaded.current = false; 
-    }
 
     setForm((f) => ({
       ...f,
@@ -189,7 +152,7 @@ export default function EditarProductoPage() {
       return;
     }
     if (!form.category.trim()) {
-      setError("Selecciona una categoría.");
+      setError("Escribe una categoría.");
       return;
     }
     if (!form.price || Number(form.price) <= 0) {
@@ -350,7 +313,6 @@ export default function EditarProductoPage() {
               />
             </Field>
 
-            {/* SECCIÓN ACTUALIZADA SIN ACCESORIOS */}
             <Field label="Sección">
               <select
                 name="section"
@@ -358,7 +320,7 @@ export default function EditarProductoPage() {
                 onChange={handleChange}
                 className={inputClass}
               >
-                <option value="Maquillaje">Maquillaje</option>
+                <option value="Maquillaje">Maquillaje (Belleza)</option>
                 <option value="Hogar">Hogar</option>
                 <option value="Papelería">Papelería</option>
                 <option value="Temporada">Temporada</option>
@@ -366,28 +328,15 @@ export default function EditarProductoPage() {
               </select>
             </Field>
 
-            <Field label="Categoría">
-              {categorias.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-[#ff1493]/30 bg-[#ff1493]/5 px-4 py-3 text-xs font-bold text-[#ff1493]">
-                  No hay categorías para esta sección.{" "}
-                  <Link href="/admin/secciones" className="underline">
-                    Crear una
-                  </Link>
-                </div>
-              ) : (
-                <select
-                  name="category"
-                  value={form.category}
-                  onChange={handleChange}
-                  className={inputClass}
-                >
-                  {categorias.map((c) => (
-                    <option key={c.id} value={c.nombre}>
-                      {c.nombre}
-                    </option>
-                  ))}
-                </select>
-              )}
+            <Field label="Categoría (Escribe Maquillaje o Cuidado Personal)">
+              <input
+                type="text"
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                placeholder="Ej: Maquillaje o Cuidado Personal"
+                className={inputClass}
+              />
             </Field>
 
             <Field label="Badge (opcional)">

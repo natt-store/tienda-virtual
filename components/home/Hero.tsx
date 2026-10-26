@@ -6,11 +6,11 @@ import { useEffect, useState } from "react";
 import { useBanners } from "@/lib/useBanners";
 import { useTarjetasCategorias } from "@/lib/useCategorias";
 
-/* Respaldo completo y forzado sin Accesorios */
+/* Respaldo completo y forzado sin Accesorios (Actualizado a Belleza) */
 const fallbackCategories = [
   {
     id: 1,
-    nombre: "Maquillaje",
+    nombre: "Belleza",
     subtitulo: "Brilla todos los días",
     enlace: "/tienda/maquillaje",
     imagen:
@@ -196,7 +196,6 @@ export default function Hero() {
 
   const slides = banners.length > 0 ? banners : [fallbackSlide];
   
-  // Filtramos las tarjetas para asegurarnos de que la sección de Accesorios quede totalmente excluida
   const rawCategories = tarjetas.length > 0 ? tarjetas : fallbackCategories;
   const categories = rawCategories.filter(
     (cat) =>

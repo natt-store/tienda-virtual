@@ -46,7 +46,7 @@ function SearchIcon() {
   );
 }
 
-export default function MaquillajePage() {
+export default function BellezaPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState<"todos" | "maquillaje" | "cuidado">("todos");
   const [separadores, setSeparadores] = useState<any[]>([]);
@@ -93,7 +93,6 @@ export default function MaquillajePage() {
 
   const filteredElements = useMemo(() => {
     return elementosTienda.filter((item) => {
-      // Filtrar títulos/subtítulos según sus categorías destino marcadas
       if (item.tipo === "titulo" || item.tipo === "subtitulo") {
         const destino = item.categoria_destino || "maquillaje,cuidado";
         if (categoriaFiltro !== "todos" && !destino.includes(categoriaFiltro)) {
@@ -101,14 +100,12 @@ export default function MaquillajePage() {
         }
       }
 
-      // Filtrar productos por categoría
       if (item.tipo === "producto") {
         const cat = item.category?.toLowerCase() || "";
         if (categoriaFiltro === "maquillaje" && !cat.includes("maquillaje")) return false;
         if (categoriaFiltro === "cuidado" && !cat.includes("cuidado") && !cat.includes("personal")) return false;
       }
 
-      // Filtrar por término de búsqueda
       if (searchTerm.trim()) {
         const term = searchTerm.toLowerCase();
         if (item.tipo === "titulo" || item.tipo === "subtitulo") {
@@ -136,9 +133,7 @@ export default function MaquillajePage() {
     <main className="min-h-screen overflow-hidden bg-[#eadfd5] text-[#24191f]">
       <Navbar />
 
-      {/* =========================================================
-          HERO BELLEZA (Estilo idéntico a Hogar)
-      ========================================================= */}
+      {/* HERO */}
       <section className="relative px-4 pb-10 pt-6 sm:px-6 lg:px-10 lg:pb-14 lg:pt-8">
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] border border-white/70 bg-[#f7eee7] shadow-[0_25px_70px_rgba(105,55,65,0.16)]">
 
@@ -164,7 +159,6 @@ export default function MaquillajePage() {
 
           <div className="relative grid min-h-[400px] items-center gap-8 px-7 py-12 sm:px-10 lg:grid-cols-[1fr_0.95fr] lg:px-16 lg:py-14">
 
-            {/* TEXTO */}
             <div className="relative z-10 max-w-xl">
               <div
                 className="mb-5 inline-flex items-center rounded-full border bg-white/70 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] backdrop-blur-md"
@@ -188,7 +182,6 @@ export default function MaquillajePage() {
                 {info.descripcion}
               </p>
 
-              {/* BOTONES */}
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
                   href="#productos"
@@ -207,7 +200,6 @@ export default function MaquillajePage() {
               </div>
             </div>
 
-            {/* COMPOSICIÓN VISUAL */}
             <div className="relative mx-auto h-[285px] w-full max-w-[480px] lg:h-[335px]">
               <div
                 className="absolute left-1/2 top-1/2 h-[225px] w-[225px] -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_28px_60px_rgba(105,55,65,0.18)] sm:h-[265px] sm:w-[265px]"
@@ -236,9 +228,7 @@ export default function MaquillajePage() {
         </div>
       </section>
 
-      {/* =========================================================
-          BARRA DE BÚSQUEDA, TÍTULO Y BOTONES DE FILTRO DE CATEGORÍAS
-      ========================================================= */}
+      {/* BARRA DE BÚSQUEDA Y FILTROS */}
       <section className="px-4 pb-7 sm:px-6 lg:px-10">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -253,7 +243,6 @@ export default function MaquillajePage() {
             </h2>
           </div>
 
-          {/* BOTONES DE FILTRO */}
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -314,9 +303,7 @@ export default function MaquillajePage() {
         </div>
       </section>
 
-      {/* =========================================================
-          PRODUCTOS Y SEPARADORES ORDENADOS
-      ========================================================= */}
+      {/* PRODUCTOS */}
       <section id="productos" className="relative px-4 pb-16 sm:px-6 lg:px-10 lg:pb-20">
         <div className="relative mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {loading ? (
@@ -325,7 +312,6 @@ export default function MaquillajePage() {
             </p>
           ) : (
             filteredElements.map((item) => {
-              // --- SEPARADOR CON LÍNEA ELEGANTE ---
               if (item.tipo === "titulo" || item.tipo === "subtitulo") {
                 return (
                   <div
@@ -345,7 +331,6 @@ export default function MaquillajePage() {
                 );
               }
 
-              // --- TARJETA DE PRODUCTO ORIGINAL ---
               const product = item;
               return (
                 <article
@@ -406,7 +391,6 @@ export default function MaquillajePage() {
           )}
         </div>
 
-        {/* SIN PRODUCTOS */}
         {!loading && filteredElements.length === 0 && (
           <div className="mx-auto mt-8 max-w-xl rounded-[24px] border border-white/70 bg-white/70 p-10 text-center shadow-sm">
             <p className="text-lg font-bold">
