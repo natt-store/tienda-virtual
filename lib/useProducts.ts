@@ -16,6 +16,7 @@ export type Product = {
   active: boolean;
   destacado: boolean;
   recomendado: boolean;
+  orden: number;
   href: string;
 };
 
@@ -48,6 +49,7 @@ export function useProducts() {
         .from("productos")
         .select("*")
         .eq("active", true)
+        .order("orden", { ascending: true })
         .order("id", { ascending: true });
 
       if (!mounted) return;
@@ -74,7 +76,7 @@ export function useProducts() {
 }
 
 /* =========================================================
-   PRODUCTOS POR SECCIÓN
+   PRODUCTOS POR SECCIÓN (Excluyendo Accesorios por seguridad)
 ========================================================= */
 export function useProductsBySection(section: string) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -91,12 +93,20 @@ export function useProductsBySection(section: string) {
         .select("*")
         .eq("active", true)
         .eq("section", section)
+        .order("orden", { ascending: true })
         .order("id", { ascending: true });
 
       if (!mounted) return;
 
-      if (!error) setProducts((data || []).map(addHref));
-      else setProducts([]);
+      if (!error) {
+        // Filtro estricto por si acaso queda algún registro viejo en base de datos
+        const filtered = (data || []).filter(
+          (p: any) => p.section?.toLowerCase() !== "accesorios"
+        );
+        setProducts(filtered.map(addHref));
+      } else {
+        setProducts([]);
+      }
 
       setLoading(false);
     }
@@ -139,8 +149,11 @@ export function useProduct(id: number | null) {
 
       if (!mounted) return;
 
-      if (!error && data) setProduct(addHref(data));
-      else setProduct(null);
+      if (!error && data && data.section?.toLowerCase() !== "accesorios") {
+        setProduct(addHref(data));
+      } else {
+        setProduct(null);
+      }
 
       setLoading(false);
     }
@@ -171,12 +184,19 @@ export function useFeaturedProducts() {
         .select("*")
         .eq("active", true)
         .eq("destacado", true)
+        .order("orden", { ascending: true })
         .order("id", { ascending: true });
 
       if (!mounted) return;
 
-      if (!error) setProducts((data || []).map(addHref));
-      else setProducts([]);
+      if (!error) {
+        const filtered = (data || []).filter(
+          (p: any) => p.section?.toLowerCase() !== "accesorios"
+        );
+        setProducts(filtered.map(addHref));
+      } else {
+        setProducts([]);
+      }
 
       setLoading(false);
     }
@@ -207,12 +227,19 @@ export function useRecommendedProducts() {
         .select("*")
         .eq("active", true)
         .eq("recomendado", true)
+        .order("orden", { ascending: true })
         .order("id", { ascending: true });
 
       if (!mounted) return;
 
-      if (!error) setProducts((data || []).map(addHref));
-      else setProducts([]);
+      if (!error) {
+        const filtered = (data || []).filter(
+          (p: any) => p.section?.toLowerCase() !== "accesorios"
+        );
+        setProducts(filtered.map(addHref));
+      } else {
+        setProducts([]);
+      }
 
       setLoading(false);
     }
@@ -229,8 +256,6 @@ export function useRecommendedProducts() {
 
 /* =========================================================
    MÁS VENDIDOS
-   1. Cuenta ventas reales desde pedidos.
-   2. Si faltan, completa con productos con badge "Más vendido".
 ========================================================= */
 export function useBestSellers() {
   const [products, setProducts] = useState<ProductWithSales[]>([]);
@@ -242,12 +267,10 @@ export function useBestSellers() {
     async function fetchBestSellers() {
       setLoading(true);
 
-      // 1. Traer pedidos
       const { data: orders } = await supabase
         .from("pedidos")
         .select("items");
 
-      // 2. Contar cantidad vendida por producto
       const counts: Record<number, number> = {};
 
       (orders || []).forEach((order: any) => {
@@ -263,7 +286,6 @@ export function useBestSellers() {
         });
       });
 
-      // 3. Sacar top 4
       const topIds = Object.entries(counts)
         .sort((a, b) => Number(b[1]) - Number(a[1]))
         .slice(0, 4)
@@ -282,6 +304,7 @@ export function useBestSellers() {
           result = topIds
             .map((id) => data.find((p: any) => p.id === id))
             .filter(Boolean)
+            .filter((p: any) => p.section?.toLowerCase() !== "accesorios")
             .map((p: any) => ({
               ...addHref(p),
               soldCount: counts[p.id] || 0,
@@ -289,7 +312,6 @@ export function useBestSellers() {
         }
       }
 
-      // 4. Si faltan, completar con badge "Más vendido"
       if (result.length < 4) {
         const existingIds = result.map((p) => p.id);
 
@@ -298,11 +320,13 @@ export function useBestSellers() {
           .select("*")
           .eq("active", true)
           .eq("badge", "Más vendido")
+          .order("orden", { ascending: true })
           .order("id", { ascending: true });
 
         if (data) {
           const extra = data
             .filter((p: any) => !existingIds.includes(p.id))
+            .filter((p: any) => p.section?.toLowerCase() !== "accesorios")
             .slice(0, 4 - result.length)
             .map((p: any) => ({
               ...addHref(p),

@@ -35,6 +35,13 @@ function IconBox() {
     </svg>
   );
 }
+function IconSort() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+      <path d="M4 7H20M7 12H17M10 17H14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
 function IconLayers() {
   return (
     <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
@@ -108,6 +115,7 @@ const menuItems = [
   { label: "Dashboard", href: "/admin", icon: <IconDashboard /> },
   { label: "Estadísticas", href: "/admin/estadisticas", icon: <IconChart /> },
   { label: "Productos", href: "/admin/productos", icon: <IconBox /> },
+  { label: "Organizar Productos", href: "/admin/orden-productos", icon: <IconSort /> },
   { label: "Secciones", href: "/admin/secciones", icon: <IconLayers /> },
   { label: "Banners", href: "/admin/banners", icon: <IconBanner /> },
   { label: "Cupones", href: "/admin/cupones", icon: <IconTag /> },
@@ -259,7 +267,7 @@ export default function AdminLayout({
                 Administrador
               </p>
               <p className="mt-1 truncate text-sm font-black text-[#24191f]">
-                Natalia {/* Nombre actualizado fijo */}
+                Natalia
               </p>
 
               <button

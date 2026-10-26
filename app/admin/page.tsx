@@ -124,7 +124,6 @@ export default function AdminDashboardPage() {
   });
   const [loading, setLoading] = useState(true);
 
-  // Protección segura usando useAdmin: si termina de cargar y no hay admin, bota al login
   useEffect(() => {
     if (!adminLoading && !admin) {
       router.replace("/admin/login");
@@ -248,29 +247,22 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Si está cargando el estado del admin, mostramos la pantalla de carga para evitar parpadeos
   if (adminLoading || !admin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--natt-bg)] text-xs font-bold text-[#67545d]">
-        Verificando acceso seguro... ✨
+        Verificando acceso seguro...
       </div>
     );
   }
 
   return (
     <div className="relative space-y-5">
-      {/* =========================================================
-          DECORACIONES DE FONDO
-      ========================================================= */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -left-32 top-20 h-72 w-72 rounded-full bg-[#ff1493]/10 blur-[100px]" />
         <div className="absolute -right-32 top-[40%] h-80 w-80 rounded-full bg-[#00d9d9]/10 blur-[110px]" />
         <div className="absolute bottom-[10%] left-[40%] h-72 w-72 rounded-full bg-[#a83cff]/8 blur-[110px]" />
       </div>
 
-      {/* =========================================================
-          ENCABEZADO
-      ========================================================= */}
       <div className="relative overflow-hidden rounded-[32px] border border-white/60 bg-[#f7eee7] px-7 py-8 shadow-[0_20px_55px_rgba(105,55,65,0.12)] sm:px-10 sm:py-10">
         <div className="pointer-events-none absolute -left-24 top-0 h-64 w-64 rounded-full bg-[#ff1493]/15 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[#00d9d9]/15 blur-3xl" />
@@ -286,37 +278,45 @@ export default function AdminDashboardPage() {
         <Sparkle className="right-[12%] top-8 h-4 w-4" color="aqua" />
         <Sparkle className="right-[30%] bottom-8 h-3 w-3" color="pink" />
 
-        <div className="relative">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#ff1493]/20 bg-white/70 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-[#ff1493] backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#ff1493] shadow-[0_0_8px_rgba(255,20,147,0.8)]" />
-              Panel Natt
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#008f91]">
-              {new Date().toLocaleDateString("es-CO", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}
-            </span>
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#ff1493]/20 bg-white/70 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-[#ff1493] backdrop-blur-md">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#ff1493] shadow-[0_0_8px_rgba(255,20,147,0.8)]" />
+                Panel Natt
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#008f91]">
+                {new Date().toLocaleDateString("es-CO", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                })}
+              </span>
+            </div>
+
+            <h1 className="mt-5 text-3xl font-black leading-[1.05] tracking-[-0.035em] text-[#24191f] sm:text-4xl lg:text-5xl">
+              Hola,{" "}
+              <span className="font-serif italic text-[#ff1493]">
+                Natalia
+              </span>
+            </h1>
+
+            <p className="mt-3 max-w-lg text-sm leading-6 text-[#67545d]">
+              Aquí tienes el resumen de cómo va Natt Store hoy.
+            </p>
           </div>
 
-          <h1 className="mt-5 text-3xl font-black leading-[1.05] tracking-[-0.035em] text-[#24191f] sm:text-4xl lg:text-5xl">
-            Hola,{" "}
-            <span className="font-serif italic text-[#ff1493]">
-              Natalia
-            </span>
-          </h1>
-
-          <p className="mt-3 max-w-lg text-sm leading-6 text-[#67545d]">
-            Aquí tienes el resumen de cómo va Natt Store hoy.
-          </p>
+          {/* BOTÓN DIRECTO PARA ORGANIZAR PRODUCTOS */}
+          <Link
+            href="/admin/orden-productos"
+            className="inline-flex items-center gap-2 rounded-full bg-[#ff1493] px-6 py-3.5 text-xs font-black text-white shadow-[0_10px_25px_rgba(255,20,147,0.3)] transition hover:-translate-y-0.5 hover:bg-[#ff2fa4]"
+          >
+            Organizar Productos
+            <IconArrow />
+          </Link>
         </div>
       </div>
 
-      {/* =========================================================
-          STATS
-      ========================================================= */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Ventas totales"
@@ -348,9 +348,6 @@ export default function AdminDashboardPage() {
         />
       </div>
 
-      {/* =========================================================
-          DOS COLUMNAS
-      ========================================================= */}
       <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
         <div className="relative overflow-hidden rounded-[30px] border border-white/60 bg-white/75 backdrop-blur-md">
           <div
@@ -472,9 +469,6 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* =========================================================
-          TOP PRODUCTOS
-      ========================================================= */}
       <div className="relative overflow-hidden rounded-[30px] border border-white/60 bg-white/75 backdrop-blur-md">
         <div
           className="absolute left-0 right-0 top-0 h-[3px]"
