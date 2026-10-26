@@ -11,11 +11,11 @@ import { useProductsBySection } from "@/lib/useProducts";
 import { usePaginaCategoria } from "@/lib/useCategorias";
 
 const fallback = {
-  etiqueta: "Colección Maquillaje",
-  titulo: "Maquillaje",
+  etiqueta: "Colección Belleza",
+  titulo: "Belleza",
   subtitulo: "para enamorarte.",
   descripcion:
-    "Descubre productos para crear looks suaves, brillantes y llenos de personalidad. Encuentra tus favoritos y hazlos parte de tu rutina.",
+    "Descubre lo mejor en Maquillaje y Cuidado Personal para consentir tu piel y realzar tu brillo natural.",
   imagen_principal: null as string | null,
   color_principal: "#ff1493",
   color_secundario: "#00d9d9",
@@ -48,13 +48,12 @@ function SearchIcon() {
 
 export default function MaquillajePage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState<"todos" | "maquillaje" | "cuidado">("todos");
   const [separadores, setSeparadores] = useState<any[]>([]);
 
-  // Traer productos reales de Supabase en tiempo real para la sección Maquillaje
   const { products: allProducts, loading } = useProductsBySection("Maquillaje");
   const { pagina } = usePaginaCategoria("maquillaje");
 
-  // Cargar también los títulos y subtítulos (separadores) ordenados
   useEffect(() => {
     const cargarSeparadores = async () => {
       const { data } = await supabase
@@ -71,14 +70,21 @@ export default function MaquillajePage() {
   }, []);
 
   const info = pagina ?? fallback;
-
   const colorPrincipal = info.color_principal || fallback.color_principal;
   const colorSecundario = info.color_secundario || fallback.color_secundario;
 
-  // Unir productos y separadores respetando el orden global guardado
   const elementosTienda = useMemo(() => {
     const prodsConTipo = allProducts.map((p) => ({ ...p, tipo: "producto" as const }));
-    const sepsConTipo = separadores.map((s) => ({ ...s, tipo: "separador" as const }));
+    const sepsConTipo: any[] = [];
+
+    separadores.forEach((s) => {
+      if (s.titulo) {
+        sepsConTipo.push({ ...s, uid: `tit-${s.id}`, tipo: "titulo" as const, name: s.titulo });
+      }
+      if (s.subtitulo) {
+        sepsConTipo.push({ ...s, uid: `sub-${s.id}`, tipo: "subtitulo" as const, name: s.subtitulo });
+      }
+    });
 
     return [...prodsConTipo, ...sepsConTipo].sort(
       (a, b) => (a.orden ?? 0) - (b.orden ?? 0)
@@ -86,57 +92,55 @@ export default function MaquillajePage() {
   }, [allProducts, separadores]);
 
   const filteredElements = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return elementosTienda;
-    }
-
-    const term = searchTerm.toLowerCase();
     return elementosTienda.filter((item) => {
-      if (item.tipo === "separador") {
-        // Los títulos se muestran si coincide su texto o si hay búsqueda general
+      // Filtrar títulos/subtítulos según las casillas guardadas en categoria_destino
+      if (item.tipo === "titulo" || item.tipo === "subtitulo") {
+        const destino = item.categoria_destino || "maquillaje,cuidado";
+        if (categoriaFiltro !== "todos" && !destino.includes(categoriaFiltro)) {
+          return false;
+        }
+      }
+
+      // Filtrar productos por categoría
+      if (item.tipo === "producto") {
+        const cat = item.category?.toLowerCase() || "";
+        if (categoriaFiltro === "maquillaje" && !cat.includes("maquillaje")) return false;
+        if (categoriaFiltro === "cuidado" && !cat.includes("cuidado") && !cat.includes("personal")) return false;
+      }
+
+      // Filtrar por término de búsqueda
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        if (item.tipo === "titulo" || item.tipo === "subtitulo") {
+          return item.name?.toLowerCase().includes(term);
+        }
         return (
-          item.titulo?.toLowerCase().includes(term) ||
-          item.subtitulo?.toLowerCase().includes(term)
+          item.name.toLowerCase().includes(term) ||
+          item.category.toLowerCase().includes(term)
         );
       }
-      return (
-        item.name.toLowerCase().includes(term) ||
-        item.category.toLowerCase().includes(term)
-      );
+
+      return true;
     });
-  }, [searchTerm, elementosTienda]);
+  }, [searchTerm, categoriaFiltro, elementosTienda]);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#eadfd5] text-[#24191f]">
       <Navbar />
 
-      {/* =========================================================
-          HERO
-      ========================================================= */}
+      {/* HERO */}
       <section className="relative px-4 pb-10 pt-6 sm:px-6 lg:px-10 lg:pb-14 lg:pt-8">
         <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[32px] border border-white/60 bg-[#f7eee7] shadow-[0_25px_70px_rgba(105,55,65,0.16)]">
           <div
             className="absolute -left-24 top-10 h-64 w-64 rounded-full blur-3xl"
             style={{ backgroundColor: `${colorPrincipal}33` }}
           />
-
           <div
             className="absolute -right-20 bottom-0 h-72 w-72 rounded-full blur-3xl"
             style={{ backgroundColor: `${colorSecundario}33` }}
           />
 
-          <div
-            className="pointer-events-none absolute -right-24 top-8 h-52 w-[480px] rotate-[12deg] rounded-[50%] border-[2px]"
-            style={{ borderColor: `${colorPrincipal}66` }}
-          />
-
-          <div
-            className="pointer-events-none absolute -right-32 top-20 h-52 w-[500px] rotate-[12deg] rounded-[50%] border-[2px]"
-            style={{ borderColor: `${colorSecundario}73` }}
-          />
-
           <div className="relative grid min-h-[390px] items-center gap-8 px-7 py-12 sm:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:px-16 lg:py-14">
-            {/* TEXTO */}
             <div className="relative z-10 max-w-xl">
               <div
                 className="mb-5 inline-flex items-center gap-2 rounded-full border bg-white/65 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] backdrop-blur-md"
@@ -145,19 +149,19 @@ export default function MaquillajePage() {
                   color: colorPrincipal,
                 }}
               >
-                {info.etiqueta || fallback.etiqueta}
+                {info.etiqueta || "Colección Belleza"}
               </div>
 
               <h1 className="text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:text-5xl lg:text-6xl">
-                {info.titulo}
+                Belleza
                 <br />
                 <span style={{ color: colorPrincipal }}>
-                  {info.subtitulo}
+                  para enamorarte.
                 </span>
               </h1>
 
               <p className="mt-6 max-w-md text-sm leading-7 text-[#67545d] sm:text-base">
-                {info.descripcion}
+                Descubre lo mejor en Maquillaje y Cuidado Personal para consentir tu piel y realzar tu brillo natural.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -178,7 +182,6 @@ export default function MaquillajePage() {
               </div>
             </div>
 
-            {/* COMPOSICIÓN VISUAL OPTIMIZADA */}
             <div className="relative mx-auto h-[270px] w-full max-w-[480px] lg:h-[330px]">
               <div
                 className="absolute left-1/2 top-1/2 h-[220px] w-[220px] -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_25px_55px_rgba(255,20,147,0.22)] sm:h-[260px] sm:w-[260px]"
@@ -186,12 +189,6 @@ export default function MaquillajePage() {
                   background: `linear-gradient(135deg, #fff8f4 0%, ${colorPrincipal}40 60%, ${colorPrincipal} 100%)`,
                 }}
               />
-
-              <div
-                className="absolute right-[8%] top-[4%] h-20 w-20 rounded-full blur-xl"
-                style={{ backgroundColor: `${colorSecundario}33` }}
-              />
-
               <div className="absolute left-1/2 top-1/2 z-10 h-[205px] w-[165px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border-4 border-white/80 bg-white shadow-[0_24px_45px_rgba(80,40,55,0.2)] sm:h-[235px] sm:w-[190px]">
                 <Image
                   src={
@@ -199,31 +196,21 @@ export default function MaquillajePage() {
                     allProducts[0]?.image ||
                     "/brand/logo.png"
                   }
-                  alt={allProducts[0]?.name || "Maquillaje Natt Store"}
+                  alt="Belleza Natt Store"
                   fill
                   sizes="(max-width: 768px) 190px, 235px"
                   className="object-cover"
                   priority
                 />
               </div>
-
-              <div
-                className="absolute bottom-[7%] left-1/2 h-[3px] w-[170px] -translate-x-1/2 rounded-full"
-                style={{
-                  backgroundColor: colorSecundario,
-                  boxShadow: `0 0 18px ${colorSecundario}`,
-                }}
-              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* =========================================================
-          BARRA DE BÚSQUEDA Y TÍTULO
-      ========================================================= */}
+      {/* BARRA DE BÚSQUEDA Y BOTONES DE FILTRO */}
       <section className="px-4 pb-7 sm:px-6 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p
               className="text-xs font-bold uppercase tracking-[0.2em]"
@@ -231,13 +218,49 @@ export default function MaquillajePage() {
             >
               Catálogo completo
             </p>
-
             <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
               Encuentra tus favoritos
             </h2>
           </div>
 
-          <div className="relative w-full sm:w-80">
+          {/* BOTONES PARA CAMBIAR DE CATEGORÍA CON SUS ESTILOS ORIGINALES */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCategoriaFiltro("todos")}
+              className={`rounded-full px-5 py-2.5 text-xs font-black transition ${
+                categoriaFiltro === "todos"
+                  ? "bg-[#24191f] text-white shadow-md"
+                  : "bg-white/80 border border-[#24191f]/10 text-[#67545d] hover:bg-white"
+              }`}
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              onClick={() => setCategoriaFiltro("maquillaje")}
+              className={`rounded-full px-5 py-2.5 text-xs font-black transition ${
+                categoriaFiltro === "maquillaje"
+                  ? "bg-[#ff1493] text-white shadow-md"
+                  : "bg-white/80 border border-[#24191f]/10 text-[#67545d] hover:bg-white"
+              }`}
+            >
+              Maquillaje
+            </button>
+            <button
+              type="button"
+              onClick={() => setCategoriaFiltro("cuidado")}
+              className={`rounded-full px-5 py-2.5 text-xs font-black transition ${
+                categoriaFiltro === "cuidado"
+                  ? "bg-[#00d9d9] text-[#172124] shadow-md"
+                  : "bg-white/80 border border-[#24191f]/10 text-[#67545d] hover:bg-white"
+              }`}
+            >
+              Cuidado Personal
+            </button>
+          </div>
+
+          <div className="relative w-full sm:w-72">
             <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
               <SearchIcon />
             </span>
@@ -245,38 +268,18 @@ export default function MaquillajePage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nombre, categoría..."
+              placeholder="Buscar producto..."
               className="w-full rounded-full border border-[#24191f]/10 bg-white/80 py-3 pl-11 pr-4 text-xs font-medium text-[#24191f] shadow-sm backdrop-blur outline-none transition focus:border-[#ff1493] focus:bg-white"
             />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm("")}
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-bold text-[#67545d] hover:text-[#ff1493]"
-              >
-                ✕
-              </button>
-            )}
           </div>
         </div>
       </section>
 
-      {/* =========================================================
-          PRODUCTOS Y SEPARADORES ORDENADOS
-      ========================================================= */}
+      {/* PRODUCTOS Y TÍTULOS CON LÍNEAS SEPARADORAS Y ESTILOS ORIGINALES */}
       <section
         id="productos"
         className="relative px-4 pb-16 sm:px-6 lg:px-10 lg:pb-20"
       >
-        <div
-          className="pointer-events-none absolute left-0 top-20 h-64 w-64 rounded-full blur-3xl"
-          style={{ backgroundColor: `${colorPrincipal}1a` }}
-        />
-        <div
-          className="pointer-events-none absolute right-0 top-1/2 h-72 w-72 rounded-full blur-3xl"
-          style={{ backgroundColor: `${colorSecundario}1a` }}
-        />
-
         {loading ? (
           <div className="relative mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
@@ -288,7 +291,6 @@ export default function MaquillajePage() {
                 <div className="space-y-2 p-3.5 sm:p-4">
                   <div className="h-2 w-16 rounded bg-[#f4e9e2]" />
                   <div className="h-3 w-full rounded bg-[#f4e9e2]" />
-                  <div className="h-3 w-3/4 rounded bg-[#f4e9e2]" />
                 </div>
               </div>
             ))}
@@ -296,29 +298,27 @@ export default function MaquillajePage() {
         ) : (
           <div className="relative mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
             {filteredElements.map((item) => {
-              // --- RENDERIZADO DE TÍTULO / SUBTÍTULO SEPARADOR ---
-              if (item.tipo === "separador") {
+              // --- SEPARADOR CON LÍNEA ELEGANTE ---
+              if (item.tipo === "titulo" || item.tipo === "subtitulo") {
                 return (
                   <div
-                    key={`sep-${item.id}`}
-                    className="col-span-full py-6 px-2 my-2 border-b border-[#24191f]/10"
+                    key={`${item.tipo}-${item.id}`}
+                    className="col-span-full pt-12 pb-6 px-2 flex flex-col items-center text-center"
                   >
-                    <h3 className="text-2xl font-black tracking-tight text-[#24191f] sm:text-3xl">
-                      {item.titulo}
-                    </h3>
-                    {item.subtitulo && (
-                      <p
-                        className="text-xs font-bold uppercase tracking-widest mt-1"
-                        style={{ color: colorPrincipal }}
-                      >
-                        {item.subtitulo}
-                      </p>
-                    )}
+                    <div className="w-full flex items-center gap-4 my-2">
+                      <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-[#24191f]/20 to-[#ff1493]/30" />
+                      <div className="space-y-1 px-4">
+                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-[#24191f]">
+                          {item.name}
+                        </h3>
+                      </div>
+                      <div className="flex-1 h-[1px] bg-gradient-to-l from-transparent via-[#24191f]/20 to-[#ff1493]/30" />
+                    </div>
                   </div>
                 );
               }
 
-              // --- RENDERIZADO DE TARJETA DE PRODUCTO ORIGINAL ---
+              // --- TARJETA DE PRODUCTO ORIGINAL ---
               const product = item;
               return (
                 <article
@@ -344,12 +344,6 @@ export default function MaquillajePage() {
                             {product.badge}
                           </span>
                         )}
-
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/30 to-transparent p-3 pt-10 opacity-0 transition group-hover:opacity-100">
-                          <span className="inline-flex rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-[#24191f]">
-                            Ver producto
-                          </span>
-                        </div>
                       </div>
                     </Link>
 
@@ -387,56 +381,6 @@ export default function MaquillajePage() {
             })}
           </div>
         )}
-
-        {!loading && filteredElements.length === 0 && (
-          <div className="mx-auto mt-8 max-w-xl rounded-[24px] border border-white/70 bg-white/70 p-10 text-center shadow-sm">
-            <p className="text-lg font-bold">
-              No encontramos productos con &quot;{searchTerm}&quot;.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setSearchTerm("")}
-              className="mt-4 rounded-full px-5 py-2.5 text-sm font-bold text-white"
-              style={{ backgroundColor: colorPrincipal }}
-            >
-              Ver todos
-            </button>
-          </div>
-        )}
-      </section>
-
-      {/* =========================================================
-          BANNER FINAL
-      ========================================================= */}
-      <section className="px-4 pb-14 sm:px-6 lg:px-10 lg:pb-20">
-        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[30px] bg-[#24131f] px-7 py-10 text-center shadow-[0_20px_55px_rgba(45,20,35,0.18)] sm:px-12">
-          <div className="absolute -left-16 top-[-80px] h-48 w-48 rounded-full bg-[#ff1493]/30 blur-3xl" />
-          <div className="absolute -right-16 bottom-[-90px] h-56 w-56 rounded-full bg-[#00d9d9]/25 blur-3xl" />
-
-          <div className="pointer-events-none absolute left-1/2 top-5 h-[2px] w-[70%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#ff1493] to-transparent opacity-80" />
-
-          <div className="relative">
-            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#00f0e8]">
-              Natt Store
-            </p>
-
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              {info.banner_final_titulo}
-            </h2>
-
-            <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-white/65">
-              {info.banner_final_descripcion}
-            </p>
-
-            <Link
-              href={info.banner_final_enlace || "/tienda"}
-              className="mt-7 inline-flex rounded-full bg-[#00d9d9] px-6 py-3 text-sm font-black text-[#172124] shadow-[0_10px_30px_rgba(0,217,217,0.2)] transition hover:-translate-y-0.5"
-            >
-              {info.banner_final_texto_boton || "Explorar tienda"}
-            </Link>
-          </div>
-        </div>
       </section>
 
       <Footer />

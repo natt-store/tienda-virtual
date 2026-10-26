@@ -12,6 +12,7 @@ type ElementoTienda = {
   price: number;
   image: string;
   orden: number;
+  categoria_destino?: string;
 };
 
 const seccionesDisponibles = ["Maquillaje", "Hogar", "Papelería", "Temporada", "Mascotas"];
@@ -29,6 +30,12 @@ export default function OrdenProductosPage() {
   const [tipoCreacion, setTipoCreacion] = useState<"titulo" | "subtitulo">("titulo");
   const [inputText, setInputText] = useState("");
 
+  // Casillas de verificación para selección múltiple
+  const [destinosSeleccionados, setDestinosSeleccionados] = useState({
+    maquillaje: true,
+    cuidado: true,
+  });
+
   // Modal para ampliar imagen al hacer clic
   const [imagenAmpliada, setImagenAmpliada] = useState<string | null>(null);
 
@@ -42,7 +49,7 @@ export default function OrdenProductosPage() {
 
     const { data: seps } = await supabase
       .from("separadores_orden")
-      .select("id, titulo, subtitulo, orden")
+      .select("id, titulo, subtitulo, categoria_destino, orden")
       .eq("seccion", seccion);
 
     const listaProds: ElementoTienda[] = (prods || []).map((p: any) => ({
@@ -68,6 +75,7 @@ export default function OrdenProductosPage() {
           price: 0,
           image: "",
           orden: s.orden ?? 0,
+          categoria_destino: s.categoria_destino || "maquillaje,cuidado",
         });
       }
       if (s.subtitulo) {
@@ -80,6 +88,7 @@ export default function OrdenProductosPage() {
           price: 0,
           image: "",
           orden: (s.orden ?? 0) + 0.1,
+          categoria_destino: s.categoria_destino || "maquillaje,cuidado",
         });
       }
     });
@@ -160,11 +169,16 @@ export default function OrdenProductosPage() {
     e.preventDefault();
     if (!inputText.trim()) return;
 
+    const arrayDestinos: string[] = [];
+    if (destinosSeleccionados.maquillaje) arrayDestinos.push("maquillaje");
+    if (destinosSeleccionados.cuidado) arrayDestinos.push("cuidado");
+    const destinoFinal = arrayDestinos.join(",") || "maquillaje,cuidado";
+
     const datosInserta: any = {
       seccion: seccionSeleccionada,
       titulo: tipoCreacion === "titulo" ? inputText.trim() : null,
       subtitulo: tipoCreacion === "subtitulo" ? inputText.trim() : null,
-      tipo_separador: tipoCreacion,
+      categoria_destino: destinoFinal,
       orden: elementos.length,
     };
 
@@ -175,7 +189,7 @@ export default function OrdenProductosPage() {
       setShowModal(false);
       await cargarDatos(seccionSeleccionada);
     } else {
-      console.error("Error detallado de Supabase:", error);
+      console.error("Error al crear:", error);
       alert(`Error al guardar: ${error.message || "Revisa la consola"}`);
     }
   };
@@ -260,7 +274,7 @@ export default function OrdenProductosPage() {
         ))}
       </div>
 
-      {/* Modal para crear Título o Subtítulo */}
+      {/* Modal para crear Título o Subtítulo con Checkboxes */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl border border-white/60 space-y-4">
@@ -281,6 +295,38 @@ export default function OrdenProductosPage() {
                   autoFocus
                 />
               </div>
+
+              <div>
+                <label className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-[#008f91]">
+                  ¿En qué pestañas se debe mostrar? (Elige una o ambas)
+                </label>
+                <div className="space-y-2 bg-[#f9f4f0] p-4 rounded-2xl border border-[#24191f]/10">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={destinosSeleccionados.maquillaje}
+                      onChange={(e) =>
+                        setDestinosSeleccionados({ ...destinosSeleccionados, maquillaje: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-gray-300 text-[#ff1493] focus:ring-[#ff1493]"
+                    />
+                    <span className="text-xs font-bold text-[#24191f]">Mostrar en Maquillaje</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={destinosSeleccionados.cuidado}
+                      onChange={(e) =>
+                        setDestinosSeleccionados({ ...destinosSeleccionados, cuidado: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-gray-300 text-[#00d9d9] focus:ring-[#00d9d9]"
+                    />
+                    <span className="text-xs font-bold text-[#24191f]">Mostrar en Cuidado Personal</span>
+                  </label>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
@@ -372,9 +418,14 @@ export default function OrdenProductosPage() {
                           #{index + 1}
                         </span>
                         <div>
-                          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff1493]">
-                            Título Principal
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff1493]">
+                              Título Principal
+                            </p>
+                            <span className="rounded-full bg-black/10 px-2 py-0.5 text-[9px] font-extrabold uppercase text-[#24191f]">
+                              Visible en: {el.categoria_destino || "maquillaje,cuidado"}
+                            </span>
+                          </div>
                           <h3 className="text-2xl font-black text-[#24191f] tracking-tight mt-0.5">
                             {el.name}
                           </h3>
@@ -432,9 +483,14 @@ export default function OrdenProductosPage() {
                           #{index + 1}
                         </span>
                         <div>
-                          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#008f91]">
-                            Subtítulo / Categoría
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#008f91]">
+                              Subtítulo / Categoría
+                            </p>
+                            <span className="rounded-full bg-black/10 px-2 py-0.5 text-[9px] font-extrabold uppercase text-[#24191f]">
+                              Visible en: {el.categoria_destino || "maquillaje,cuidado"}
+                            </span>
+                          </div>
                           <p className="text-sm font-bold uppercase tracking-wider text-[#24191f] mt-0.5">
                             {el.name}
                           </p>
