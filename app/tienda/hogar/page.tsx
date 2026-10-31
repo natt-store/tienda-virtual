@@ -7,6 +7,16 @@ import { useMemo, useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useProductsBySection } from "@/lib/useProducts";
+import { usePaginaCategoria } from "@/lib/useCategorias";
+
+const fallbackHogar = {
+  etiqueta: "Colección Hogar",
+  titulo: "Tu espacio,",
+  subtitulo: "tu esencia.",
+  descripcion:
+    "Pequeños detalles que transforman tus espacios y hacen que cada rincón se sienta más tuyo.",
+  imagen_principal: null as string | null,
+};
 
 function SearchIcon() {
   return (
@@ -33,6 +43,9 @@ export default function HogarPage() {
 
   // Traer productos reales de Supabase en tiempo real para la sección Hogar
   const { products: allProducts, loading } = useProductsBySection("Hogar");
+  const { pagina } = usePaginaCategoria("hogar");
+
+  const info = pagina ?? fallbackHogar;
 
   const filteredProducts = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -78,20 +91,19 @@ export default function HogarPage() {
             {/* TEXTO */}
             <div className="relative z-10 max-w-xl">
               <div className="mb-5 inline-flex items-center rounded-full border border-[#00bfc0]/20 bg-white/70 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[#008f91] backdrop-blur-md">
-                Colección Hogar
+                {info.etiqueta || "Colección Hogar"}
               </div>
 
               <h1 className="text-4xl font-black leading-[0.95] tracking-[-0.04em] sm:text-5xl lg:text-6xl">
-                Tu espacio,
+                {info.titulo}
                 <br />
                 <span className="text-[#008f91]">
-                  tu esencia.
+                  {info.subtitulo}
                 </span>
               </h1>
 
               <p className="mt-6 max-w-md text-sm leading-7 text-[#675b55] sm:text-base">
-                Pequeños detalles que transforman tus espacios y hacen que
-                cada rincón se sienta más tuyo.
+                {info.descripcion}
               </p>
 
               {/* BOTONES */}
@@ -119,6 +131,7 @@ export default function HogarPage() {
               <div className="absolute left-1/2 top-1/2 z-10 h-[210px] w-[170px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[30px] border-4 border-white/85 bg-white shadow-[0_24px_50px_rgba(70,50,45,0.22)] sm:h-[240px] sm:w-[195px]">
                 <Image
                   src={
+                    info.imagen_principal ||
                     allProducts[0]?.image ||
                     "https://images.unsplash.com/photo-1556912167-f556f1f39fdf?auto=format&fit=crop&w=900&q=85"
                   }

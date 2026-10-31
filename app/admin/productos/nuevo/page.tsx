@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 function IconBack() {
@@ -23,12 +23,14 @@ function IconUpload() {
   );
 }
 
+const SECCIONES_DISPONIBLES = ["Maquillaje", "Hogar", "Papelería", "Temporada", "Mascotas"];
+
 export default function NuevoProductoPage() {
   const router = useRouter();
 
   const [form, setForm] = useState({
     name: "",
-    section: "Maquillaje",
+    section: ["Maquillaje"] as string[],
     category: "",
     price: "",
     precio_costo: "",
@@ -42,34 +44,9 @@ export default function NuevoProductoPage() {
     recomendado: false,
   });
 
-  const [categorias, setCategorias] = useState<{ id: number; nombre: string; seccion: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function loadCategorias() {
-      const { data } = await supabase
-        .from("categorias")
-        .select("id, nombre, seccion")
-        .eq("seccion", form.section)
-        .eq("activa", true)
-        .order("orden", { ascending: true });
-
-      setCategorias(data || []);
-
-      if (data && data.length > 0) {
-        const existe = data.find((c) => c.nombre === form.category);
-        if (!existe) {
-          setForm((f) => ({ ...f, category: data[0].nombre }));
-        }
-      } else {
-        setForm((f) => ({ ...f, category: "" }));
-      }
-    }
-
-    loadCategorias();
-  }, [form.section]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -81,6 +58,21 @@ export default function NuevoProductoPage() {
       ...f,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  const handleSectionToggle = (secNombre: string) => {
+    setForm((prev) => {
+      const existe = prev.section.includes(secNombre);
+      let nuevoArray = [...prev.section];
+      if (existe) {
+        if (nuevoArray.length > 1) {
+          nuevoArray = nuevoArray.filter((s) => s !== secNombre);
+        }
+      } else {
+        nuevoArray.push(secNombre);
+      }
+      return { ...prev, section: nuevoArray };
+    });
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +109,7 @@ export default function NuevoProductoPage() {
       return;
     }
     if (!form.category.trim()) {
-      setError("Selecciona una categoría.");
+      setError("Escribe una categoría.");
       return;
     }
     if (!form.price || Number(form.price) <= 0) {
@@ -131,9 +123,11 @@ export default function NuevoProductoPage() {
 
     setSaving(true);
 
+    const seccionesTexto = form.section.join(", ");
+
     const { error: insertError } = await supabase.from("productos").insert({
       name: form.name.trim(),
-      section: form.section.trim(),
+      section: seccionesTexto,
       category: form.category.trim(),
       price: Number(form.price),
       precio_costo: Number(form.precio_costo) || 0,
@@ -218,21 +212,6 @@ export default function NuevoProductoPage() {
               />
             </Field>
 
-            <Field label="Sección">
-              <select
-                name="section"
-                value={form.section}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="Maquillaje">Maquillaje (Belleza)</option>
-                <option value="Hogar">Hogar</option>
-                <option value="Papelería">Papelería</option>
-                <option value="Temporada">Temporada</option>
-                <option value="Mascotas">Mascotas</option>
-              </select>
-            </Field>
-
             <Field label="Categoría (Para filtrar en la tienda)">
               <input
                 type="text"
@@ -243,6 +222,35 @@ export default function NuevoProductoPage() {
                 className={inputClass}
               />
             </Field>
+
+            {/* SECCIONES MÚLTIPLES CON CHECKBOXES */}
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-[#008f91]">
+                Secciones donde aparecerá (Puedes marcar varias)
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 rounded-2xl border border-[#24191f]/10 bg-[#f9f4f0] p-4">
+                {SECCIONES_DISPONIBLES.map((sec) => {
+                  const seleccionado = form.section.includes(sec);
+                  return (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => handleSectionToggle(sec)}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold transition ${
+                        seleccionado
+                          ? "bg-[#ff1493] text-white shadow-md"
+                          : "bg-white border border-[#24191f]/10 text-[#67545d] hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className={`flex h-4 w-4 items-center justify-center rounded border ${seleccionado ? "border-white bg-white text-[#ff1493]" : "border-gray-300 bg-white"}`}>
+                        {seleccionado && "✓"}
+                      </span>
+                      {sec}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <Field label="Badge (opcional)">
               <select

@@ -76,7 +76,7 @@ export function useProducts() {
 }
 
 /* =========================================================
-   PRODUCTOS POR SECCIÓN (Excluyendo Accesorios por seguridad)
+   PRODUCTOS POR SECCIÓN (Soporta múltiples secciones y excluye Accesorios)
 ========================================================= */
 export function useProductsBySection(section: string) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -92,17 +92,23 @@ export function useProductsBySection(section: string) {
         .from("productos")
         .select("*")
         .eq("active", true)
-        .eq("section", section)
         .order("orden", { ascending: true })
         .order("id", { ascending: true });
 
       if (!mounted) return;
 
-      if (!error) {
-        // Filtro estricto por si acaso queda algún registro viejo en base de datos
-        const filtered = (data || []).filter(
-          (p: any) => p.section?.toLowerCase() !== "accesorios"
-        );
+      if (!error && data) {
+        const filtered = (data || []).filter((p: any) => {
+          if (!p.section) return false;
+          if (p.section.toLowerCase() === "accesorios") return false;
+
+          const seccionesProducto = p.section
+            .split(",")
+            .map((s: string) => s.trim().toLowerCase());
+
+          return seccionesProducto.includes(section.toLowerCase());
+        });
+
         setProducts(filtered.map(addHref));
       } else {
         setProducts([]);
@@ -276,7 +282,7 @@ export function useBestSellers() {
       (orders || []).forEach((order: any) => {
         const items = (order.items as any[]) || [];
 
-        items.forEach((item) => {
+        items.forEach((item: any) => {
           const id = Number(item.id);
           const qty = Number(item.quantity) || 0;
 

@@ -33,6 +33,8 @@ function IconTrash() {
   );
 }
 
+const SECCIONES_DISPONIBLES = ["Maquillaje", "Hogar", "Papelería", "Temporada", "Mascotas"];
+
 export default function EditarProductoPage() {
   const params = useParams();
   const router = useRouter();
@@ -40,7 +42,7 @@ export default function EditarProductoPage() {
 
   const [form, setForm] = useState({
     name: "",
-    section: "Maquillaje",
+    section: [] as string[],
     category: "",
     price: "",
     precio_costo: "",
@@ -79,9 +81,13 @@ export default function EditarProductoPage() {
         return;
       }
 
+      const seccionesArray = data.section
+        ? data.section.split(",").map((s: string) => s.trim())
+        : ["Maquillaje"];
+
       setForm({
         name: data.name || "",
-        section: data.section || "Maquillaje",
+        section: seccionesArray,
         category: data.category || "",
         price: String(data.price || ""),
         precio_costo: String(data.precio_costo || ""),
@@ -114,6 +120,21 @@ export default function EditarProductoPage() {
       ...f,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  const handleSectionToggle = (secNombre: string) => {
+    setForm((prev) => {
+      const existe = prev.section.includes(secNombre);
+      let nuevoArray = [...prev.section];
+      if (existe) {
+        if (nuevoArray.length > 1) {
+          nuevoArray = nuevoArray.filter((s) => s !== secNombre);
+        }
+      } else {
+        nuevoArray.push(secNombre);
+      }
+      return { ...prev, section: nuevoArray };
+    });
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,11 +187,13 @@ export default function EditarProductoPage() {
 
     setSaving(true);
 
+    const seccionesTexto = form.section.join(", ");
+
     const { error: updateError } = await supabase
       .from("productos")
       .update({
         name: form.name.trim(),
-        section: form.section.trim(),
+        section: seccionesTexto,
         category: form.category.trim(),
         price: Number(form.price),
         precio_costo: Number(form.precio_costo) || 0,
@@ -313,21 +336,6 @@ export default function EditarProductoPage() {
               />
             </Field>
 
-            <Field label="Sección">
-              <select
-                name="section"
-                value={form.section}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="Maquillaje">Maquillaje (Belleza)</option>
-                <option value="Hogar">Hogar</option>
-                <option value="Papelería">Papelería</option>
-                <option value="Temporada">Temporada</option>
-                <option value="Mascotas">Mascotas</option>
-              </select>
-            </Field>
-
             <Field label="Categoría (Escribe Maquillaje o Cuidado Personal)">
               <input
                 type="text"
@@ -338,6 +346,35 @@ export default function EditarProductoPage() {
                 className={inputClass}
               />
             </Field>
+
+            {/* SECCIONES MÚLTIPLES CON CHECKBOXES */}
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-[#008f91]">
+                Secciones donde aparecerá (Puedes marcar varias)
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 rounded-2xl border border-[#24191f]/10 bg-[#f9f4f0] p-4">
+                {SECCIONES_DISPONIBLES.map((sec) => {
+                  const seleccionado = form.section.includes(sec);
+                  return (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => handleSectionToggle(sec)}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold transition ${
+                        seleccionado
+                          ? "bg-[#ff1493] text-white shadow-md"
+                          : "bg-white border border-[#24191f]/10 text-[#67545d] hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className={`flex h-4 w-4 items-center justify-center rounded border ${seleccionado ? "border-white bg-white text-[#ff1493]" : "border-gray-300 bg-white"}`}>
+                        {seleccionado && "✓"}
+                      </span>
+                      {sec}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <Field label="Badge (opcional)">
               <select
