@@ -48,7 +48,6 @@ function SearchIcon() {
 
 export default function BellezaPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoriaFiltro, setCategoriaFiltro] = useState<"todos" | "maquillaje" | "cuidado">("todos");
   const [separadores, setSeparadores] = useState<any[]>([]);
 
   const { products: allProducts, loading } = useProductsBySection("Maquillaje");
@@ -93,33 +92,20 @@ export default function BellezaPage() {
 
   const filteredElements = useMemo(() => {
     return elementosTienda.filter((item) => {
+      if (!searchTerm.trim()) {
+        return true;
+      }
+
+      const term = searchTerm.toLowerCase();
       if (item.tipo === "titulo" || item.tipo === "subtitulo") {
-        const destino = item.categoria_destino || "maquillaje,cuidado";
-        if (categoriaFiltro !== "todos" && !destino.includes(categoriaFiltro)) {
-          return false;
-        }
+        return item.name?.toLowerCase().includes(term);
       }
-
-      if (item.tipo === "producto") {
-        const cat = item.category?.toLowerCase() || "";
-        if (categoriaFiltro === "maquillaje" && !cat.includes("maquillaje")) return false;
-        if (categoriaFiltro === "cuidado" && !cat.includes("cuidado") && !cat.includes("personal")) return false;
-      }
-
-      if (searchTerm.trim()) {
-        const term = searchTerm.toLowerCase();
-        if (item.tipo === "titulo" || item.tipo === "subtitulo") {
-          return item.name?.toLowerCase().includes(term);
-        }
-        return (
-          item.name.toLowerCase().includes(term) ||
-          item.category.toLowerCase().includes(term)
-        );
-      }
-
-      return true;
+      return (
+        item.name.toLowerCase().includes(term) ||
+        item.category.toLowerCase().includes(term)
+      );
     });
-  }, [searchTerm, categoriaFiltro, elementosTienda]);
+  }, [searchTerm, elementosTienda]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -228,9 +214,9 @@ export default function BellezaPage() {
         </div>
       </section>
 
-      {/* BARRA DE BÚSQUEDA Y FILTROS */}
+      {/* BARRA DE BÚSQUEDA */}
       <section className="px-4 pb-7 sm:px-6 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p
               className="text-xs font-bold uppercase tracking-[0.2em]"
@@ -243,42 +229,6 @@ export default function BellezaPage() {
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setCategoriaFiltro("todos")}
-              className={`rounded-full px-5 py-2.5 text-xs font-black transition ${
-                categoriaFiltro === "todos"
-                  ? "bg-[#24191f] text-white shadow-md"
-                  : "bg-white/80 border border-[#24191f]/10 text-[#67545d] hover:bg-white"
-              }`}
-            >
-              Todos
-            </button>
-            <button
-              type="button"
-              onClick={() => setCategoriaFiltro("maquillaje")}
-              className={`rounded-full px-5 py-2.5 text-xs font-black transition ${
-                categoriaFiltro === "maquillaje"
-                  ? "bg-[#ff1493] text-white shadow-md"
-                  : "bg-white/80 border border-[#24191f]/10 text-[#67545d] hover:bg-white"
-              }`}
-            >
-              Maquillaje
-            </button>
-            <button
-              type="button"
-              onClick={() => setCategoriaFiltro("cuidado")}
-              className={`rounded-full px-5 py-2.5 text-xs font-black transition ${
-                categoriaFiltro === "cuidado"
-                  ? "bg-[#00d9d9] text-[#172124] shadow-md"
-                  : "bg-white/80 border border-[#24191f]/10 text-[#67545d] hover:bg-white"
-              }`}
-            >
-              Cuidado Personal
-            </button>
-          </div>
-
           <div className="relative w-full sm:w-80">
             <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
               <SearchIcon />
@@ -287,8 +237,8 @@ export default function BellezaPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nombre, categoría..."
-              className="w-full rounded-full border border-[#24191f]/10 bg-white/80 py-3 pl-11 pr-4 text-xs font-medium text-[#24191f] shadow-sm backdrop-blur outline-none transition focus:border-[#ff1493] focus:bg-white"
+              placeholder="Buscar producto por nombre..."
+              className="w-full rounded-full border border-[#24191f]/10 bg-white/80 py-3.5 pl-11 pr-10 text-xs font-semibold text-[#24191f] shadow-sm backdrop-blur outline-none transition focus:border-[#ff1493] focus:bg-white"
             />
             {searchTerm && (
               <button
