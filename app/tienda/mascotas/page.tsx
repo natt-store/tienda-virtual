@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useMemo, useState } from "react";
 
 import Navbar from "@/components/layout/Navbar";
@@ -157,17 +156,14 @@ export default function MascotasPage() {
               />
 
               <div className="absolute left-1/2 top-1/2 z-10 h-[205px] w-[165px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border-4 border-white/80 bg-white shadow-[0_24px_45px_rgba(80,40,55,0.2)] sm:h-[235px] sm:w-[190px]">
-                <Image
+                <img
                   src={
                     info.imagen_principal ||
                     allProducts[0]?.image ||
                     "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=90"
                   }
                   alt={allProducts[0]?.name || "Mascotas Natt Store"}
-                  fill
-                  sizes="(max-width: 768px) 190px, 235px"
-                  className="object-cover"
-                  priority
+                  className="h-full w-full object-cover"
                 />
               </div>
 
@@ -266,12 +262,10 @@ export default function MascotasPage() {
               >
                 <Link href={`/tienda/producto/${product.id}`} className="block">
                   <div className="relative aspect-[0.88] overflow-hidden bg-[#f4e9e2]">
-                    <Image
+                    <img
                       src={product.image}
                       alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-cover transition duration-500 group-hover:scale-105"
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
 
                     {product.badge && (

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useMemo, useState } from "react";
 
 import Navbar from "@/components/layout/Navbar";
@@ -165,17 +164,14 @@ export default function TemporadaPage() {
               />
 
               <div className="absolute left-1/2 top-1/2 z-10 h-[205px] w-[165px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border-4 border-white/80 bg-white shadow-[0_24px_45px_rgba(80,40,55,0.2)] sm:h-[235px] sm:w-[190px]">
-                <Image
+                <img
                   src={
                     info.imagen_principal ||
                     allProducts[0]?.image ||
                     "/brand/logo.png"
                   }
                   alt={allProducts[0]?.name || "Temporada Natt Store"}
-                  fill
-                  sizes="(max-width: 768px) 190px, 235px"
-                  className="object-cover"
-                  priority
+                  className="h-full w-full object-cover"
                 />
               </div>
 
@@ -193,7 +189,7 @@ export default function TemporadaPage() {
       </section>
 
       {/* =========================================================
-          BARRA DE BÚSQUEDA Y TÍTULO (CON ESTILOS Y SIN CATEGORÍAS)
+          BARRA DE BÚSQUEDA Y TÍTULO
       ========================================================= */}
       <section className="px-4 pb-7 sm:px-6 lg:px-10">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -221,14 +217,12 @@ export default function TemporadaPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar producto por nombre..."
               className="w-full rounded-full border border-[#24191f]/10 bg-white/90 py-3.5 pl-11 pr-10 text-xs font-semibold text-[#24191f] shadow-sm backdrop-blur outline-none transition focus:bg-white"
-              style={{ focusBorderColor: colorPrincipal } as any}
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm("")}
                 className="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-bold text-[#67545d]"
-                style={{ hoverColor: colorPrincipal } as any}
               >
                 ✕
               </button>
@@ -269,12 +263,10 @@ export default function TemporadaPage() {
               >
                 <Link href={`/tienda/producto/${product.id}`} className="block">
                   <div className="relative aspect-[0.88] overflow-hidden bg-[#f4e9e2]">
-                    <Image
+                    <img
                       src={product.image}
                       alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-cover transition duration-500 group-hover:scale-105"
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
 
                     {product.badge && (

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useCart } from "@/components/cart/CartContext";
@@ -364,13 +363,10 @@ export default function ProductDetail({
             <div className="relative">
               <div className="relative mx-auto max-w-[520px] overflow-hidden rounded-[22px] bg-gradient-to-br from-[#f7d9df] via-[#f1e2d8] to-[#d9eef0] p-2.5 sm:rounded-[27px] sm:p-3.5">
                 <div className="relative aspect-square w-full overflow-hidden rounded-[18px] bg-white/50 shadow-[0_14px_32px_rgba(60,30,50,0.1)] sm:rounded-[21px]">
-                  <Image
+                  <img
                     src={product.image}
                     alt={product.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 520px"
-                    className="object-cover"
-                    priority
+                    className="h-full w-full object-cover"
                   />
                 </div>
 
@@ -586,12 +582,10 @@ export default function ProductDetail({
 
                     {review.foto && (
                       <div className="mt-2.5 relative h-24 w-24 overflow-hidden rounded-[13px]">
-                        <Image
+                        <img
                           src={review.foto}
                           alt={`Foto compartida por ${review.nombre}`}
-                          fill
-                          sizes="96px"
-                          className="object-cover"
+                          className="h-full w-full object-cover"
                         />
                       </div>
                     )}
@@ -692,12 +686,10 @@ export default function ProductDetail({
               {reviewPhotoPreview ? (
                 <div className="relative">
                   <div className="relative h-20 w-20 overflow-hidden rounded-[13px]">
-                    <Image
+                    <img
                       src={reviewPhotoPreview}
                       alt="Vista previa"
-                      fill
-                      sizes="80px"
-                      className="object-cover"
+                      className="h-full w-full object-cover"
                     />
                   </div>
                   <span className="mt-1.5 block text-[9px] font-semibold text-[var(--natt-pink)]">
@@ -763,12 +755,10 @@ export default function ProductDetail({
                 className="group overflow-hidden rounded-[20px] border border-white/60 bg-white/45 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
               >
                 <div className="relative aspect-square overflow-hidden bg-[var(--natt-bg-soft)]">
-                  <Image
+                  <img
                     src={related.image}
                     alt={related.name}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
                 <div className="p-3 sm:p-3.5">

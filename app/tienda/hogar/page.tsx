@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useMemo, useState } from "react";
 
 import Navbar from "@/components/layout/Navbar";
@@ -129,17 +128,14 @@ export default function HogarPage() {
               <div className="absolute left-1/2 top-1/2 h-[225px] w-[225px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-[#fffaf5] via-[#ead8ca] to-[#cdb29e] shadow-[0_28px_60px_rgba(105,75,60,0.18)] sm:h-[265px] sm:w-[265px]" />
               
               <div className="absolute left-1/2 top-1/2 z-10 h-[210px] w-[170px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[30px] border-4 border-white/85 bg-white shadow-[0_24px_50px_rgba(70,50,45,0.22)] sm:h-[240px] sm:w-[195px]">
-                <Image
+                <img
                   src={
                     info.imagen_principal ||
                     allProducts[0]?.image ||
                     "https://images.unsplash.com/photo-1556912167-f556f1f39fdf?auto=format&fit=crop&w=900&q=85"
                   }
                   alt={allProducts[0]?.name || "Productos para el hogar Natt Store"}
-                  fill
-                  sizes="(max-width: 768px) 195px, 240px"
-                  className="object-cover"
-                  priority
+                  className="h-full w-full object-cover"
                 />
               </div>
             </div>
@@ -203,12 +199,10 @@ export default function HogarPage() {
               >
                 <Link href={`/tienda/producto/${product.id}`} className="block">
                   <div className="relative aspect-[0.88] overflow-hidden bg-[#efe4da]">
-                    <Image
+                    <img
                       src={product.image}
                       alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      className="object-cover transition duration-500 group-hover:scale-105"
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
                     {product.badge && (
                       <span className="absolute left-3 top-3 z-10 rounded-full bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-wide text-[#008f91] shadow-sm backdrop-blur">
