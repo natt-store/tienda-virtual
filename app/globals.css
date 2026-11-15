@@ -131,9 +131,3 @@ a {
     0 0 10px rgba(168, 60, 255, 0.22),
     0 0 30px rgba(168, 60, 255, 0.1);
 }
-
-/* Mejora de nitidez en todas las imágenes */
-img {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
