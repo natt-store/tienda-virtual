@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -184,15 +185,17 @@ export default function BellezaPage() {
               />
 
               <div className="relative z-10 h-[210px] w-[170px] overflow-hidden rounded-[30px] border-4 border-white/85 bg-white shadow-[0_24px_50px_rgba(80,40,55,0.22)] sm:h-[240px] sm:w-[195px]">
-                <img
+                <Image
                   src={
                     info.imagen_principal ||
                     allProducts[0]?.image ||
                     "/brand/logo.png"
                   }
                   alt={allProducts[0]?.name || "Belleza Natt Store"}
-                  className="h-full w-full object-cover"
-                  style={{ imageRendering: "high-quality" }}
+                  fill
+                  sizes="(max-width: 768px) 170px, 195px"
+                  unoptimized
+                  className="object-cover"
                 />
               </div>
             </div>
@@ -276,12 +279,14 @@ export default function BellezaPage() {
                 >
                   <div>
                     <Link href={`/tienda/producto/${product.id}`} className="block">
-                      <div className="relative aspect-square w-full overflow-hidden bg-[#f4e9e2]">
-                        <img
+                      <div className="relative aspect-[0.88] w-full overflow-hidden bg-[#f4e9e2]">
+                        <Image
                           src={product.image}
                           alt={product.name}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          style={{ imageRendering: "high-quality" }}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          unoptimized
+                          className="object-cover transition duration-500 group-hover:scale-105"
                         />
                         {product.badge && (
                           <span
