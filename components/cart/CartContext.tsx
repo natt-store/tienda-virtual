@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
 export type CartProduct = {
@@ -157,7 +156,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   };
 
-  // ERROR CORREGIDO AQUÍ: se quitó 'fnTotalItems' y quedó como función limpia
   const totalItems = useMemo(
     () => items.reduce((total, item) => total + item.quantity, 0),
     [items]
@@ -211,12 +209,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
               {/* Miniatura del producto */}
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-[#24191f]/10 bg-[#efe4da]">
                 {toastProduct.image ? (
-                  <Image
+                  <img
                     src={toastProduct.image}
                     alt={toastProduct.name}
-                    fill
-                    sizes="56px"
-                    className="object-cover"
+                    className="h-full w-full object-cover"
                   />
                 ) : null}
               </div>

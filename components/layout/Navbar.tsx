@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
@@ -302,12 +301,9 @@ export default function Navbar() {
             className="group flex shrink-0 items-center"
             aria-label="Natt Store - Inicio"
           >
-            <Image
+            <img
               src="/brand/logo.png"
               alt="Natt Store"
-              width={360}
-              height={210}
-              priority
               className="h-auto w-[108px] object-contain transition-transform duration-500 group-hover:scale-[1.04] sm:w-[135px] lg:w-[185px]"
             />
           </Link>
@@ -631,11 +627,9 @@ export default function Navbar() {
                         className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-[var(--natt-bg)]"
                       >
                         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[var(--natt-bg)]">
-                          <Image
+                          <img
                             src={product.image}
                             alt={product.name}
-                            width={56}
-                            height={56}
                             className="h-full w-full object-cover"
                           />
                         </div>
