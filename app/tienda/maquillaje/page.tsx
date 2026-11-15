@@ -132,16 +132,6 @@ export default function BellezaPage() {
           />
           <div className="absolute left-[45%] top-[-100px] h-64 w-64 rounded-full bg-[#f3c9a8]/30 blur-3xl" />
 
-          <div
-            className="pointer-events-none absolute -right-28 top-8 h-56 w-[520px] rotate-[10deg] rounded-[50%] border-[2px]"
-            style={{ borderColor: `${colorSecundario}55` }}
-          />
-          <div
-            className="pointer-events-none absolute -right-20 top-24 h-56 w-[500px] rotate-[10deg] rounded-[50%] border-[2px]"
-            style={{ borderColor: `${colorPrincipal}33` }}
-          />
-          <div className="pointer-events-none absolute bottom-[-130px] left-[18%] h-60 w-[600px] rounded-[50%] border-[2px] border-[#c99f82]/25" />
-
           <div className="relative grid min-h-[400px] items-center gap-8 px-7 py-12 sm:px-10 lg:grid-cols-[1fr_0.95fr] lg:px-16 lg:py-14">
 
             <div className="relative z-10 max-w-xl">
@@ -185,15 +175,15 @@ export default function BellezaPage() {
               </div>
             </div>
 
-            <div className="relative mx-auto h-[285px] w-full max-w-[480px] lg:h-[335px]">
+            <div className="relative mx-auto h-[285px] w-full max-w-[480px] lg:h-[335px] flex items-center justify-center">
               <div
-                className="absolute left-1/2 top-1/2 h-[225px] w-[225px] -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_28px_60px_rgba(105,55,65,0.18)] sm:h-[265px] sm:w-[265px]"
+                className="absolute h-[225px] w-[225px] rounded-full shadow-[0_28px_60px_rgba(105,55,65,0.18)] sm:h-[265px] sm:w-[265px]"
                 style={{
                   background: `linear-gradient(135deg, #fffaf5 0%, ${colorPrincipal}33 60%, ${colorPrincipal} 100%)`,
                 }}
               />
 
-              <div className="absolute left-1/2 top-1/2 z-10 h-[210px] w-[170px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[30px] border-4 border-white/85 bg-white shadow-[0_24px_50px_rgba(80,40,55,0.22)] sm:h-[240px] sm:w-[195px]">
+              <div className="relative z-10 h-[210px] w-[170px] overflow-hidden rounded-[30px] border-4 border-white/85 bg-white shadow-[0_24px_50px_rgba(80,40,55,0.22)] sm:h-[240px] sm:w-[195px]">
                 <img
                   src={
                     info.imagen_principal ||
@@ -202,6 +192,7 @@ export default function BellezaPage() {
                   }
                   alt={allProducts[0]?.name || "Belleza Natt Store"}
                   className="h-full w-full object-cover"
+                  style={{ imageRendering: "high-quality" }}
                 />
               </div>
             </div>
@@ -285,11 +276,12 @@ export default function BellezaPage() {
                 >
                   <div>
                     <Link href={`/tienda/producto/${product.id}`} className="block">
-                      <div className="relative aspect-[0.88] overflow-hidden bg-[#f4e9e2]">
+                      <div className="relative aspect-square w-full overflow-hidden bg-[#f4e9e2]">
                         <img
                           src={product.image}
                           alt={product.name}
                           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          style={{ imageRendering: "high-quality" }}
                         />
                         {product.badge && (
                           <span
