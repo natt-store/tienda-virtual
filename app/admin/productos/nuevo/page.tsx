@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -288,13 +287,10 @@ export default function NuevoProductoPage() {
           <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-[#24191f]/10 bg-[#f9f4f0] shadow-inner">
               {form.image ? (
-                <Image
+                <img
                   src={form.image}
                   alt={form.name || "Vista previa"}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 200px"
-                  className="object-cover"
-                  priority
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-[#67545d]">
